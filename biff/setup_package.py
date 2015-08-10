@@ -12,13 +12,6 @@ def get_extensions():
     cfg['include_dirs'].append('numpy')
     cfg['include_dirs'].append('biff/src')
     cfg['sources'].append('biff/computecoeff.pyx')
-    # cfg['sources'].append('cextern/brent.c')
-    # cfg['sources'].append('cextern/simpson.c')
-    ext = Extension('biff._bfe', **cfg)
+    cfg['libraries'] = ['gsl', 'gslcblas']
 
-    return [ext]
-
-# are the c files provided by some external library?  If so, should add it here
-# so that users have the option of using that instead of the builtin one
-def get_external_libraries():
-    return ['gsl', 'gslcblas']
+    return [Extension('biff._bfe', **cfg)]
