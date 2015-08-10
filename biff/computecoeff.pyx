@@ -17,18 +17,44 @@ from libc.math cimport M_PI
 
 cdef extern from "math.h":
     double sqrt(double x) nogil
+    double atan2(double y, double x) nogil
+    double cos(double x) nogil
+    double sin(double x) nogil
+
+cdef extern from "gsl/gsl_sf_gamma.h":
+    double gsl_sf_gamma(double x) nogil
+    double gsl_sf_fact(unsigned int n) nogil
 
 cdef extern from "src/coeff_helper.c":
-    ctypedef double (*DensityFunc)(double, double, double, double, double, double*) nogil
-    double Anlm_integrand(DensityFunc density, double phi, double X, double xsi,
-                          int n, int l, int m, double M, double r_s, double *args) nogil
+    double RR_Plm_cosmphi(double r, double phi, double X, double a, int n, int l, int m) nogil
 
 __all__ = ['compute_Anlm']
 
-cdef double test_density(double x, double y, double z,
-                         double M, double *args) nogil:
-    cdef double r = sqrt(x*x + y*y + z*z)
-    return M/(2.*M_PI) * args[0] / (r*(r + args[0])**3)
+cpdef Anlm_integrand(density_func, double phi, double X, double xsi,
+                     int n, int l, int m, double M, double r_s,
+                     double[::1] args):
+    """
+    Anlm_integrand(density_func, phi, X, xsi, n, l, m, M, r_s, density_func_args)
+    """
+    cdef:
+        double r = (1 + xsi) / (1 - xsi)
+        double x = r * cos(phi) * sqrt(1-X*X)
+        double y = r * sin(phi) * sqrt(1-X*X)
+        double z = r * X
+
+        double Knl, Inl, tmp, tmp2, krond
+
+    Knl = 0.5*n*(n + 4*l + 3) + (l + 1)*(2*l + 1)
+    tmp2 = (gsl_sf_gamma(n + 4*l + 3) / (gsl_sf_fact(n) *
+            (n + 2*l + 1.5) * gsl_sf_gamma(2*l + 1.5)**2))
+    if m == 0:
+        krond = 1.
+    else:
+        krond = 0.
+
+    Inl = Knl / 2**(8*l+6) * tmp2 * (1 + krond) * M_PI * 2/(2*l+1) * gsl_sf_fact(l+m) / gsl_sf_fact(l-m)
+    tmp = 2. / ((1-xsi)*(1-xsi))
+    return RR_Plm_cosmphi(r, phi, X, a, n, l, m) * tmp / Inl * _density(x, y, z, M, a) / M
 
 cpdef compute_Anlm(density_func):
     cdef:
@@ -36,12 +62,11 @@ cpdef compute_Anlm(density_func):
         double c = 2.
         double[::1] args = np.array([M, c])
 
-    Anlm_integrand(<DensityFunc>density_func,
-                   0., 0., 0.,
-                   0, 0, 0,
-                   M, c,
-                   &args[0])
-
+    # Anlm_integrand(density_func,
+    #                0., 0., 0.,
+    #                0, 0, 0,
+    #                M, c,
+    #                &args[0])
 
 
 
