@@ -65,12 +65,17 @@ cpdef compute_Anlm(density_func, nlm, M, r_s, args=()):
     cdef:
         int[::1] _nlm = np.array(nlm).astype(np.int32)
         double[::1] _args = np.array(args)
+        double Anlm
 
-    cdef double v = Anlm_integrand(0., 0., 0.,
-                                   density_func,
-                                   nlm[0], nlm[1], nlm[2],
-                                   M, r_s, _args)
-    return v
+    Anlm = si.tplquad(Anlm_integrand,
+                      -1., 1.,
+                      lambda *args: -1., lambda *args: 1.,
+                      lambda *args: 0., lambda *args: 2*np.pi,
+                      args=(nlm[0], nlm[1], nlm[2], M, r_s, _args))
+
+    return Anlm
+
+
 
 
 
