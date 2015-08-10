@@ -23,7 +23,7 @@ cdef extern from "src/bfe_helper.c":
     double phi_nlm(double r, double phi, double X, double r_s, int n, int l, int m) nogil
     double rho_nlm(double r, double phi, double X, double r_s, int n, int l, int m) nogil
 
-__all__ = ['density']
+__all__ = ['density', 'potential']
 
 cpdef density(double[:,::1] xyz,
               double M, double r_s,
