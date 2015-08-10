@@ -30,13 +30,13 @@ cdef double test_density(double x, double y, double z,
     cdef double r = sqrt(x*x + y*y + z*z)
     return M/(2.*M_PI) * args[0] / (r*(r + args[0])**3)
 
-cpdef compute_Anlm():
+cpdef compute_Anlm(density_func):
     cdef:
         double M = 1E10
         double c = 2.
         double[::1] args = np.array([M, c])
 
-    Anlm_integrand(<DensityFunc>test_density,
+    Anlm_integrand(<DensityFunc>density_func,
                    0., 0., 0.,
                    0, 0, 0,
                    M, c,
