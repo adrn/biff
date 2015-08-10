@@ -28,10 +28,11 @@ cdef extern from "gsl/gsl_sf_gamma.h":
 cdef extern from "src/coeff_helper.c":
     double RR_Plm_cosmphi(double r, double phi, double X, double a, int n, int l, int m) nogil
 
-__all__ = ['compute_Anlm']
+__all__ = ['Anlm_integrand']
 
 cpdef Anlm_integrand(density_func, double phi, double X, double xsi,
-                     int n, int l, int m, double M, double r_s,
+                     int n, int l, int m,
+                     double M, double r_s,
                      double[::1] args):
     """
     Anlm_integrand(density_func, phi, X, xsi, n, l, m, M, r_s, density_func_args)
@@ -52,21 +53,22 @@ cpdef Anlm_integrand(density_func, double phi, double X, double xsi,
     else:
         krond = 0.
 
-    Inl = Knl / 2**(8*l+6) * tmp2 * (1 + krond) * M_PI * 2/(2*l+1) * gsl_sf_fact(l+m) / gsl_sf_fact(l-m)
+    Inl = (Knl / 2**(8*l+6) * tmp2 * (1 + krond) * M_PI *
+           2/(2*l+1) * gsl_sf_fact(l+m) / gsl_sf_fact(l-m))
     tmp = 2. / ((1-xsi)*(1-xsi))
-    return RR_Plm_cosmphi(r, phi, X, a, n, l, m) * tmp / Inl * _density(x, y, z, M, a) / M
+    return (RR_Plm_cosmphi(r, phi, X, r_s, n, l, m) * tmp / Inl *
+            density_func(x, y, z, M, r_s, args) / M)
 
-cpdef compute_Anlm(density_func):
+cpdef compute_Anlm(density_func, nlm, M, r_s, args=()):
     cdef:
-        double M = 1E10
-        double c = 2.
-        double[::1] args = np.array([M, c])
+        double[::1] _nlm = np.array(nlm)
+        double[::1] _args = np.array(args)
 
-    # Anlm_integrand(density_func,
-    #                0., 0., 0.,
-    #                0, 0, 0,
-    #                M, c,
-    #                &args[0])
+    Anlm_integrand(density_func,
+                   0., 0., 0.,
+                   nlm[0], nlm[1], nlm[2],
+                   M, r_s,
+                   _args)
 
 
 
