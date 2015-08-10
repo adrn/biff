@@ -11,6 +11,7 @@ from __future__ import division, print_function
 
 __author__ = "adrn <adrn@astro.columbia.edu>"
 
+import scipy.integrate as si
 import numpy as np
 cimport numpy as np
 from libc.math cimport M_PI
@@ -30,12 +31,13 @@ cdef extern from "src/coeff_helper.c":
 
 __all__ = ['Anlm_integrand']
 
-cpdef Anlm_integrand(density_func, double phi, double X, double xsi,
+cpdef Anlm_integrand(double phi, double X, double xsi,
+                     density_func,
                      int n, int l, int m,
                      double M, double r_s,
                      double[::1] args):
     """
-    Anlm_integrand(density_func, phi, X, xsi, n, l, m, M, r_s, density_func_args)
+    Anlm_integrand(phi, X, xsi, density_func, n, l, m, M, r_s, density_func_args)
     """
     cdef:
         double r = (1 + xsi) / (1 - xsi)
@@ -61,14 +63,14 @@ cpdef Anlm_integrand(density_func, double phi, double X, double xsi,
 
 cpdef compute_Anlm(density_func, nlm, M, r_s, args=()):
     cdef:
-        double[::1] _nlm = np.array(nlm)
+        int[::1] _nlm = np.array(nlm).astype(np.int32)
         double[::1] _args = np.array(args)
 
-    Anlm_integrand(density_func,
-                   0., 0., 0.,
-                   nlm[0], nlm[1], nlm[2],
-                   M, r_s,
-                   _args)
+    cdef double v = Anlm_integrand(0., 0., 0.,
+                                   density_func,
+                                   nlm[0], nlm[1], nlm[2],
+                                   M, r_s, _args)
+    return v
 
 
 

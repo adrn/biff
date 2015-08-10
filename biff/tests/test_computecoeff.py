@@ -20,4 +20,5 @@ def hernquist_density(x, y, z, M, r_s, args):
     return M/(2*np.pi) * r_s / (r * (r+r_s)**3)
 
 def test():
-    compute_Anlm(hernquist_density, n=0, l=0, m=0, M=1E10, r_s=2.)
+    v = compute_Anlm(hernquist_density, nlm=[0,0,0], M=1E10, r_s=2.)
+    print(v)
