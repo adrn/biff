@@ -13,7 +13,7 @@ from ._computecoeff import Anlm_integrand
 
 __all__ = ['compute_Anlm']
 
-def compute_Anlm(density_func, nlm, M, r_s, args=()):
+def compute_Anlm(density_func, nlm, M, r_s, args=(), **tplquad_kwargs):
     """
     Compute the expansion coefficients for representing the input
     density function as a basis function expansion.
@@ -47,6 +47,10 @@ def compute_Anlm(density_func, nlm, M, r_s, args=()):
         A list or iterable of any other arguments needed by the density
         function.
 
+    tplquad_kwargs
+        Any additional keyword arguments are passed through to
+        `~scipy.integrate.tplquad`.
+
     Returns
     -------
     Anlm : float
@@ -62,6 +66,7 @@ def compute_Anlm(density_func, nlm, M, r_s, args=()):
                       -1., 1.,
                       lambda *args: -1., lambda *args: 1.,
                       lambda *args: 0., lambda *args: 2*np.pi,
-                      args=(density_func, nlm[0], nlm[1], nlm[2], M, r_s, _args))
+                      args=(density_func, nlm[0], nlm[1], nlm[2], M, r_s, _args),
+                      **tplquad_kwargs)
 
     return Anlm
