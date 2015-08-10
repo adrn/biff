@@ -9,7 +9,7 @@ import numpy as np
 import scipy.integrate as si
 
 # Project
-from ._bfe import Anlm_integrand
+from ._computecoeff import Anlm_integrand
 
 __all__ = ['compute_Anlm']
 
