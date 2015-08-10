@@ -11,7 +11,7 @@ G = _G.decompose([u.kpc,u.Myr,u.Msun]).value
 import numpy as np
 
 # Project
-from .._bfe import density
+from .._bfe import density, potential
 
 # Check that we get A000=1. for putting in hernquist density
 def hernquist_density(xyz, M, r_s):
@@ -43,3 +43,6 @@ def test_hernquist():
     true_dens = hernquist_density(xyz, M, r_s)
     np.testing.assert_allclose(bfe_dens, true_dens)
 
+    bfe_pot = potential(xyz, G, M, r_s, Anlm, nmax, lmax)
+    true_pot = hernquist_potential(xyz, M, r_s)
+    np.testing.assert_allclose(bfe_pot, true_pot)
