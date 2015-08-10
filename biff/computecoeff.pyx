@@ -11,7 +11,6 @@ from __future__ import division, print_function
 
 __author__ = "adrn <adrn@astro.columbia.edu>"
 
-import scipy.integrate as si
 import numpy as np
 cimport numpy as np
 from libc.math cimport M_PI
@@ -60,20 +59,6 @@ cpdef Anlm_integrand(double phi, double X, double xsi,
     tmp = 2. / ((1-xsi)*(1-xsi))
     return (RR_Plm_cosmphi(r, phi, X, r_s, n, l, m) * tmp / Inl *
             density_func(x, y, z, M, r_s, args) / M)
-
-cpdef compute_Anlm(density_func, nlm, M, r_s, args=()):
-    cdef:
-        int[::1] _nlm = np.array(nlm).astype(np.int32)
-        double[::1] _args = np.array(args)
-        double Anlm
-
-    Anlm = si.tplquad(Anlm_integrand,
-                      -1., 1.,
-                      lambda *args: -1., lambda *args: 1.,
-                      lambda *args: 0., lambda *args: 2*np.pi,
-                      args=(nlm[0], nlm[1], nlm[2], M, r_s, _args))
-
-    return Anlm
 
 
 

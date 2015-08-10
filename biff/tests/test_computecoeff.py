@@ -12,7 +12,7 @@ import sys
 import numpy as np
 
 # Project
-from .._bfe import compute_Anlm
+from ..core import compute_Anlm
 
 # API:
 def hernquist_density(x, y, z, M, r_s, args):
