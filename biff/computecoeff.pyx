@@ -32,14 +32,10 @@ cdef extern from "gsl/gsl_sf_gegenbauer.h":
 cdef extern from "gsl/gsl_sf_legendre.h":
     double gsl_sf_legendre_Plm(int l, int m, double x) nogil
 
-__all__ = ['compute_Anlm']
+cdef extern from "src/coeff_helper.h":
+    double RR_Plm_cosmphi(double r, double phi, double costheta, double r_s, int n, int l, int m) nogil
 
-cdef double RR_Plm_cosmphi(double r, double phi, double costheta,
-                           double r_s, int n, int l, int m):
-    cdef double RR
-    cdef double s = r/r_s
-    RR = r**l * (1+s)**(-2*l-1) * gsl_sf_gegenpoly_n(n, 2*l + 1.5, (s-1)/(s+1))
-    return RR * gsl_sf_legendre_Plm(l, m, costheta) * cos(m*phi) * r*r
+__all__ = ['compute_Anlm']
 
 cpdef Anlm_integrand(double phi, double X, double xsi,
                      int n, int l, int m,
