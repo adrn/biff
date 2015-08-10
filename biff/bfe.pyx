@@ -29,7 +29,7 @@ cpdef density(double[:,::1] xyz,
               double M, double r_s,
               double[:,:,::1] Anlm, int nmax, int lmax):
     """
-    density()
+    density(xyz, M, r_s, Anlm, nmax, lmax)
     """
 
     cdef:
@@ -56,7 +56,7 @@ cpdef potential(double[:,::1] xyz,
                 double G, double M, double r_s,
                 double[:,:,::1] Anlm, int nmax, int lmax):
     """
-    potential()
+    potential(xyz, G, M, r_s, Anlm, nmax, lmax)
     """
 
     cdef:
