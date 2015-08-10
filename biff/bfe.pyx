@@ -1,33 +1,56 @@
-# cpdef phi_nlm(double r, double phi, double costheta, int n, int l, int m):
-#     cdef double A,B
-#     A = s**l / (1+s)**(2*l+1) * gsl_sf_gegenpoly_n(n, 2*l + 1.5, (s-1)/(s+1))
-#     B = gsl_sf_legendre_Plm(l, m, costheta)
-#     return -A * B * cos(m*phi)
+# coding: utf-8
+# cython: boundscheck=False
+# cython: nonecheck=False
+# cython: cdivision=True
+# cython: wraparound=False
+# cython: profile=False
 
-# cpdef rho_nlm(double s, double phi, double costheta, int n, int l, int m):
-#     cdef double A,B,Knl
-#     Knl = 0.5*n*(n+4*l+3) + (l+1)*(2*l+1)
-#     A = Knl/(2*M_PI) * s**l / (s*(1+s)**(2*l+3)) * gsl_sf_gegenpoly_n(n, 2*l + 1.5, (s-1)/(s+1))
-#     B = gsl_sf_legendre_Plm(l, m, costheta)
-#     return A * B * cos(m*phi)
+from __future__ import division, print_function
 
-# cpdef apw_value(double[::1] xyz,
-#                 double G, double M, double r_s,
-#                 double[:,:,::1] Anlm, int nmax, int lmax):
-#     cdef:
-#         double r = sqrt(xyz[0]*xyz[0] + xyz[1]*xyz[1] + xyz[2]*xyz[2])
-#         double s = r / r_s
-#         double costheta = xyz[2]/r
-#         double phi = atan2(xyz[1], xyz[0])
-#         int n,l,m
-#         double pot = 0.
+__author__ = "adrn <adrn@astro.columbia.edu>"
 
-#     for n in range(nmax+1):
-#         for l in range(lmax+1):
-#             for m in range(-l,l+1):
-#                 pot += Anlm[n,l,m] * phi_nlm(s, phi, costheta, n, l, m)
+import numpy as np
+cimport numpy as np
+from libc.math cimport M_PI
 
-#     return G*M/r_s * pot
+cdef extern from "math.h":
+    double sqrt(double x) nogil
+    double atan2(double y, double x) nogil
+    double cos(double x) nogil
+    double sin(double x) nogil
+
+cdef extern from "src/bfe_helper.c":
+    double phi_nlm(double r, double phi, double X, double r_s, int n, int l, int m) nogil
+    double rho_nlm(double r, double phi, double X, double r_s, int n, int l, int m) nogil
+
+__all__ = ['density']
+
+cpdef density(double[:,::1] xyz,
+              double G, double M, double r_s,
+              double[:,:,::1] Anlm, int nmax, int lmax):
+    """
+    density()
+    """
+
+    cdef:
+        int i,n,l,m
+        int ncoords = xyz.shape[0]
+        double r,X,phi
+        double[::1] pot = np.zeros(ncoords)
+
+    for i in range(ncoords):
+        r = sqrt(xyz[i,0]*xyz[i,0] + xyz[i,1]*xyz[i,1] + xyz[i,2]*xyz[i,2])
+        X = xyz[i,2]/r # cos(theta)
+        phi = atan2(xyz[i,1], xyz[i,0])
+
+        for n in range(nmax+1):
+            for l in range(lmax+1):
+                for m in range(l+1):
+                    pot[i] += Anlm[n,l,m] * phi_nlm(r, phi, X, r_s, n, l, m)
+
+        pot[i] *= G*M/r_s
+
+    return np.array(pot)
 
 # cpdef apw_density(double[::1] xyz,
 #                   double G, double M, double r_s,
