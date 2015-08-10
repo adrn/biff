@@ -16,21 +16,7 @@ cimport numpy as np
 from libc.math cimport M_PI
 
 cdef extern from "math.h":
-    double exp(double x) nogil
     double sqrt(double x) nogil
-    double atan2(double y, double x) nogil
-    double cos(double x) nogil
-    double sin(double x) nogil
-
-cdef extern from "gsl/gsl_sf_gamma.h":
-    double gsl_sf_gamma(double x) nogil
-    double gsl_sf_fact(unsigned int n) nogil
-
-cdef extern from "gsl/gsl_sf_gegenbauer.h":
-    double gsl_sf_gegenpoly_n(int n, double alpha, double x) nogil
-
-cdef extern from "gsl/gsl_sf_legendre.h":
-    double gsl_sf_legendre_Plm(int l, int m, double x) nogil
 
 cdef extern from "src/coeff_helper.c":
     ctypedef double (*DensityFunc)(double, double, double, double, double, double*) nogil
@@ -55,7 +41,6 @@ cpdef compute_Anlm():
                    0, 0, 0,
                    M, c,
                    &args[0])
-    pass
 
 
 
