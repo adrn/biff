@@ -58,4 +58,4 @@ cpdef Anlm_integrand(double phi, double X, double xsi,
            2/(2*l+1) * gsl_sf_fact(l+m) / gsl_sf_fact(l-m))
     tmp = 2. / ((1-xsi)*(1-xsi))
     return (RR_Plm_cosmphi(r, phi, X, r_s, n, l, m) * tmp / Inl *
-            density_func(x, y, z, M, r_s, args) / M)
+            density_func(x, y, z, args) / M)
