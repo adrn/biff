@@ -11,7 +11,7 @@ G = _G.decompose([u.kpc,u.Myr,u.Msun]).value
 import numpy as np
 
 # Project
-from .._bfe import density, potential
+from .._bfe import density, potential, gradient
 
 # Check that we get A000=1. for putting in hernquist density
 def hernquist_density(xyz, M, r_s):
@@ -23,6 +23,11 @@ def hernquist_potential(xyz, M, r_s):
     xyz = np.atleast_2d(xyz)
     r = np.sqrt(np.sum(xyz**2, axis=-1))
     return -G*M / (r + r_s)
+
+def hernquist_gradient(xyz, M, r_s):
+    import gary.potential as gp
+    p = gp.HernquistPotential(m=M, c=r_s, units=[u.kpc,u.Myr,u.Msun,u.radian])
+    return p.gradient(xyz)
 
 def test_hernquist():
     nmax = 6
@@ -46,3 +51,7 @@ def test_hernquist():
     bfe_pot = potential(xyz, G, M, r_s, Anlm, nmax, lmax)
     true_pot = hernquist_potential(xyz, M, r_s)
     np.testing.assert_allclose(bfe_pot, true_pot)
+
+    bfe_grad = gradient(xyz, G, M, r_s, Anlm, nmax, lmax)
+    true_grad = hernquist_gradient(xyz, M, r_s)
+    np.testing.assert_allclose(bfe_grad, true_grad)
