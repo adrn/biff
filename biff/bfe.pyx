@@ -22,8 +22,9 @@ cdef extern from "math.h":
 cdef extern from "src/bfe_helper.c":
     double phi_nlm(double r, double phi, double X, double r_s, int n, int l, int m) nogil
     double rho_nlm(double r, double phi, double X, double r_s, int n, int l, int m) nogil
+    double grad_phi_nlm(double r, double phi, double X, double r_s, int n, int l, int m, double *grad) nogil
 
-__all__ = ['density', 'potential']
+__all__ = ['density', 'potential', 'gradient']
 
 cpdef density(double[:,::1] xyz,
               double M, double r_s,
@@ -78,3 +79,36 @@ cpdef potential(double[:,::1] xyz,
         pot[i] *= G*M/r_s
 
     return np.array(pot)
+
+cpdef gradient(double[:,::1] xyz,
+               double G, double M, double r_s,
+               double[:,:,::1] Anlm, int nmax, int lmax):
+    """
+    gradient(xyz, G, M, r_s, Anlm, nmax, lmax)
+    """
+
+    cdef:
+        int i,n,l,m
+        int ncoords = xyz.shape[0]
+        double r,X,phi
+        double[:,::1] grad = np.zeros((ncoords,3))
+        double[::1] tmp_grad = np.zeros(3)
+
+    for i in range(ncoords):
+        r = sqrt(xyz[i,0]*xyz[i,0] + xyz[i,1]*xyz[i,1] + xyz[i,2]*xyz[i,2])
+        X = xyz[i,2]/r # cos(theta)
+        phi = atan2(xyz[i,1], xyz[i,0])
+
+        for n in range(nmax+1):
+            for l in range(lmax+1):
+                for m in range(l+1):
+                    grad_phi_nlm(r, phi, X, r_s, n, l, m, &tmp_grad[0])
+                    grad[i,0] += Anlm[n,l,m] * tmp_grad[0]
+                    grad[i,1] += Anlm[n,l,m] * tmp_grad[1]
+                    grad[i,2] += Anlm[n,l,m] * tmp_grad[2]
+
+        grad[i,0] *= G*M/(r_s*r_s)
+        grad[i,1] *= G*M/(r_s*r_s)
+        grad[i,2] *= G*M/(r_s*r_s)
+
+    return np.array(grad)
