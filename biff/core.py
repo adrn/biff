@@ -13,7 +13,7 @@ from ._computecoeff import Anlm_integrand
 
 __all__ = ['compute_Anlm']
 
-def compute_Anlm(density_func, nlm, M, r_s, args=(), **tplquad_kwargs):
+def compute_Anlm(density_func, nlm, M, r_s, args=(), **kwargs):
     """
     Compute the expansion coefficients for representing the input
     density function as a basis function expansion.
@@ -47,9 +47,9 @@ def compute_Anlm(density_func, nlm, M, r_s, args=(), **tplquad_kwargs):
         A list or iterable of any other arguments needed by the density
         function.
 
-    tplquad_kwargs
+    kwargs
         Any additional keyword arguments are passed through to
-        `~scipy.integrate.tplquad`.
+        `~scipy.integrate.nquad` as options, `opts`.
 
     Returns
     -------
@@ -62,11 +62,15 @@ def compute_Anlm(density_func, nlm, M, r_s, args=(), **tplquad_kwargs):
     nlm = np.array(nlm).astype(np.int32)
     _args = np.array(args)
 
-    Anlm = si.tplquad(Anlm_integrand,
-                      -1., 1.,
-                      lambda *args: -1., lambda *args: 1.,
-                      lambda *args: 0., lambda *args: 2*np.pi,
-                      args=(density_func, nlm[0], nlm[1], nlm[2], M, r_s, _args),
-                      **tplquad_kwargs)
+    kwargs.setdefault('limit', 256)
+    kwargs.setdefault('epsrel', 1E-10)
+
+    limits = [[0,2*np.pi], # phi
+              [-1,1.], # X (cos(theta))
+              [-1,1.]] # xsi
+    Anlm = si.nquad(Anlm_integrand,
+                    ranges=limits,
+                    args=(density_func, nlm[0], nlm[1], nlm[2], M, r_s, _args),
+                    opts=kwargs)
 
     return Anlm
