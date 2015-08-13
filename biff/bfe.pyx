@@ -20,34 +20,35 @@ cdef extern from "math.h":
     double sin(double x) nogil
 
 cdef extern from "src/bfe_helper.c":
-    double phi_nlm(double r, double phi, double X, double r_s, int n, int l, int m) nogil
-    double rho_nlm(double r, double phi, double X, double r_s, int n, int l, int m) nogil
+    double phi_nlm(double r, double phi, double X, int n, int l, int m) nogil
+    double rho_nlm(double r, double phi, double X, int n, int l, int m) nogil
     double grad_phi_nlm(double r, double phi, double X, double r_s, int n, int l, int m, double *grad) nogil
 
 __all__ = ['density', 'potential', 'gradient']
 
 cpdef density(double[:,::1] xyz,
               double M, double r_s,
-              double[:,:,::1] Anlm, int nmax, int lmax):
+              double[:,:,::1] Snlm, double[:,:,::1] Tnlm, int nmax, int lmax):
     """
-    density(xyz, M, r_s, Anlm, nmax, lmax)
+    density(xyz, M, r_s, Snlm, Tnlm, nmax, lmax)
     """
 
     cdef:
         int i,n,l,m
         int ncoords = xyz.shape[0]
-        double r,X,phi
+        double s,X,phi
         double[::1] dens = np.zeros(ncoords)
 
     for i in range(ncoords):
-        r = sqrt(xyz[i,0]*xyz[i,0] + xyz[i,1]*xyz[i,1] + xyz[i,2]*xyz[i,2])
+        s = sqrt(xyz[i,0]*xyz[i,0] + xyz[i,1]*xyz[i,1] + xyz[i,2]*xyz[i,2])/r_s
         X = xyz[i,2]/r # cos(theta)
         phi = atan2(xyz[i,1], xyz[i,0])
 
         for n in range(nmax+1):
             for l in range(lmax+1):
                 for m in range(l+1):
-                    dens[i] += Anlm[n,l,m] * rho_nlm(r, phi, X, r_s, n, l, m)
+                    dens[i] += rho_nlm(s, phi, X, n, l, m) * (Snlm[n,l,m]*cos(m*phi) +
+                                                              Tnlm[n,l,m]*sin(m*phi))
 
         dens[i] *= M/(r_s*r_s*r_s)
 

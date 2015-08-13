@@ -2,45 +2,52 @@
 #include "gsl/gsl_sf_gegenbauer.h"
 #include <math.h>
 #include "coeff_helper.h"
+#include <complex.h>
 
-double RR_Plm_cosmphi(double r, double phi, double costheta,
-                      double r_s, int n, int l, int m) {
-    /*
-    Computes a portion of the integrand for computing the
-    expansion coefficients, Anlm.
-    */
+double cc_phi_nlm(double s, double phi, double X, int n, int l, int m) {
+    /* Complex conjugate of phi_nlm */
     double RR;
-    double s = r/r_s;
-    RR = pow(r,l) * pow(1+s,-2*l-1) * gsl_sf_gegenpoly_n(n, 2*l + 1.5, (s-1)/(s+1));
-    return RR * gsl_sf_legendre_Plm(l, m, costheta) * cos(m*phi) * r*r;
+    double sqrt_fourpi = 3.544907701811031;
+    RR = -pow(s,l) * pow(1+s, -2*l-1) * gsl_sf_gegenpoly_n(n, 2*l+1.5, (s-1)/(s+1));
+    return sqrt_fourpi * RR * gsl_sf_legendre_sphPlm(l, m, X);
 }
 
-double c_Anlm_integrand(double phi, double X, double xsi,
-                        density_func,
-                     int n, int l, int m,
-                     double M, double r_s,
-                     double[::1] args):
-    """
-    Anlm_integrand(phi, X, xsi, density_func, n, l, m, M, r_s, density_func_args)
-    """
-    cdef:
-        double r = (1 + xsi) / (1 - xsi)
-        double x = r * cos(phi) * sqrt(1-X*X)
-        double y = r * sin(phi) * sqrt(1-X*X)
-        double z = r * X
+double STnlm_integrand_help(double phi, double X, double xsi,
+                            double density, int n, int l, int m) {
+    /*
+    Computes the integrand used to compute the expansion
+    coefficients, Anlm. The integral is done over:
 
-        double Knl, Inl, tmp, tmp2, krond
+        * phi: azimuthal angle
+        * X: cos(theta), where theta is the colatitude
+            (e.g., from spherical coordinates typical to physicists)
+        * xsi: (s-1)/(s+1), a radial coordinate mapped to the interval
+            [-1,1] rather than [0,inf].
+    */
+    double _tmp = (1 - xsi);
+    double s = (1 + xsi) / _tmp;
 
-    Knl = 0.5*n*(n + 4*l + 3) + (l + 1)*(2*l + 1)
-    tmp2 = (gsl_sf_gamma(n + 4*l + 3) / (gsl_sf_fact(n) *
-            (n + 2*l + 1.5) * gsl_sf_gamma(2*l + 1.5)**2))
-    if m == 0:
-        krond = 1.
-    else:
-        krond = 0.
+    // temporary variables
+    double Knl, Anl, krond;
 
-    Inl = (Knl / 2**(8*l+6) * tmp2 * (1 + krond) * M_PI *
-           2/(2*l+1) * gsl_sf_fact(l+m) / gsl_sf_fact(l-m))
-    tmp = 2. / ((1-xsi)*(1-xsi))
-    return (RR_Plm_cosmphi(r, phi, X, r_s, n, l, m) * tmp / Inl *
-            density_func(x, y, z, args) / M)
+    Knl = 0.5*n*(n + 4*l + 3) + (l + 1)*(2*l + 1);
+    if (m == 0) {
+        krond = 1.;
+    } else {
+        krond = 0.;
+    }
+
+    Anl = (-pow(2., 8*l+6) / (Knl * 4*M_PI) *
+           (gsl_sf_fact(n) * (n + 2*l + 1.5) * pow(gsl_sf_gamma(2*l + 1.5),2)) / gsl_sf_gamma(n+4*l+3));
+    return Anl * 2 / (_tmp*_tmp) * s*s * cc_phi_nlm(s, phi, X, n, l, m);
+}
+
+extern double Snlm_integrand(double phi, double X, double xsi,
+                             double density, int n, int l, int m) {
+    return STnlm_integrand_help(phi, X, xsi, density, n, l, m) * cos(m*phi);
+}
+
+extern double Tnlm_integrand(double phi, double X, double xsi,
+                             double density, int n, int l, int m) {
+    return STnlm_integrand_help(phi, X, xsi, density, n, l, m) * sin(m*phi);
+}
