@@ -4,7 +4,7 @@
 #include "coeff_helper.h"
 #include <complex.h>
 
-#define SQRT_FOURPI 3.544907701811031;
+#define SQRT_FOURPI 3.544907701811031
 
 double cc_phi_nlm(double s, double phi, double X, int n, int l, int m) {
     /* Complex conjugate of phi_nlm */

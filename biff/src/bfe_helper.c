@@ -3,14 +3,7 @@
 #include <math.h>
 #include "bfe_helper.h"
 
-#define SQRT_FOURPI 3.544907701811031;
-
-double phi_nl(double s, double phi, double X, int n, int l) {
-    return SQRT_FOURPI * -pow(s,l) * pow(1+s, -2*l-1) * gsl_sf_gegenpoly_n(n, 2*l+1.5, (s-1)/(s+1));
-}
-double phi_nlm(double s, double phi, double X, int n, int l, int m) {
-    return phi_nl(s, phi, X, n, l) * gsl_sf_legendre_sphPlm(l, m, X);
-}
+#define SQRT_FOURPI 3.544907701811031
 
 double rho_nl(double s, double phi, double X, int n, int l) {
     double RR, Knl;
@@ -19,10 +12,14 @@ double rho_nl(double s, double phi, double X, int n, int l) {
     return SQRT_FOURPI * RR;
 }
 double rho_nlm(double s, double phi, double X, int n, int l, int m) {
-    double RR, Knl;
-    Knl = 0.5*n*(n+4*l+3) + (l+1)*(2*l+1);
-    RR = Knl/(2*M_PI) * pow(s,l) / (s*pow(1+s,2*l+3)) * gsl_sf_gegenpoly_n(n, 2*l + 1.5, (s-1)/(s+1));
     return rho_nl(s, phi, X, n, l) * gsl_sf_legendre_sphPlm(l, m, X);
+}
+
+double phi_nl(double s, double phi, double X, int n, int l) {
+    return SQRT_FOURPI * -pow(s,l) * pow(1+s, -2*l-1) * gsl_sf_gegenpoly_n(n, 2*l+1.5, (s-1)/(s+1));
+}
+double phi_nlm(double s, double phi, double X, int n, int l, int m) {
+    return phi_nl(s, phi, X, n, l) * gsl_sf_legendre_sphPlm(l, m, X);
 }
 
 void sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m, double *sphgrad) {
@@ -40,10 +37,10 @@ void sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m, doubl
 
     // copied out of Mathematica
     if (n == 0) {
-        dPhi_dr = -(pow(r_s,l)*pow(s,l-1)*pow(1+s,-2*l-3)*cosmphi*Ylm*
+        dPhi_dr = -(pow(s,l)*pow(s,l-1)*pow(1+s,-2*l-3)*cosmphi*Ylm*
             (1 + s)*(l*(-1 + s) + s)*ggn);
     } else {
-        dPhi_dr = -(pow(r_s,l)*pow(s,l-1)*pow(1+s,-2*l-3)*cosmphi*Ylm*
+        dPhi_dr = -(pow(s,l)*pow(s,l-1)*pow(1+s,-2*l-3)*cosmphi*Ylm*
             (-2*(3 + 4*l)*s*gsl_sf_gegenpoly_n(n-1, 2.5 + 2*l, (-1 + s)/(1 + s)) +
             (1 + s)*(l*(-1 + s) + s)*ggn));
     }
@@ -64,7 +61,7 @@ void sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m, doubl
     }
     dPhi_dphi *= Ylm * Phi_nl / s;
 
-    grad[0] = dPhi_dr;
-    grad[1] = dPhi_dtheta;
-    grad[2] = dPhi_dphi;
+    sphgrad[0] = dPhi_dr;
+    sphgrad[1] = dPhi_dtheta;
+    sphgrad[2] = dPhi_dphi;
 }
