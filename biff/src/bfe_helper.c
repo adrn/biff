@@ -3,42 +3,47 @@
 #include <math.h>
 #include "bfe_helper.h"
 
+#define SQRT_FOURPI 3.544907701811031;
+
+double phi_nl(double s, double phi, double X, int n, int l) {
+    return SQRT_FOURPI * -pow(s,l) * pow(1+s, -2*l-1) * gsl_sf_gegenpoly_n(n, 2*l+1.5, (s-1)/(s+1));
+}
 double phi_nlm(double s, double phi, double X, int n, int l, int m) {
-    double RR;
-    double sqrt_fourpi = 3.544907701811031;
-    RR = -pow(s,l) * pow(1+s, -2*l-1) * gsl_sf_gegenpoly_n(n, 2*l+1.5, (s-1)/(s+1));
-    return sqrt_fourpi * RR * gsl_sf_legendre_sphPlm(l, m, X);
+    return phi_nl(s, phi, X, n, l) * gsl_sf_legendre_sphPlm(l, m, X);
 }
 
-double rho_nlm(double s, double phi, double X, int n, int l, int m) {
+double rho_nl(double s, double phi, double X, int n, int l) {
     double RR, Knl;
-    double sqrt_fourpi = 3.544907701811031;
     Knl = 0.5*n*(n+4*l+3) + (l+1)*(2*l+1);
     RR = Knl/(2*M_PI) * pow(s,l) / (s*pow(1+s,2*l+3)) * gsl_sf_gegenpoly_n(n, 2*l + 1.5, (s-1)/(s+1));
-    return sqrt_fourpi * RR * gsl_sf_legendre_sphPlm(l, m, X);
+    return SQRT_FOURPI * RR;
+}
+double rho_nlm(double s, double phi, double X, int n, int l, int m) {
+    double RR, Knl;
+    Knl = 0.5*n*(n+4*l+3) + (l+1)*(2*l+1);
+    RR = Knl/(2*M_PI) * pow(s,l) / (s*pow(1+s,2*l+3)) * gsl_sf_gegenpoly_n(n, 2*l + 1.5, (s-1)/(s+1));
+    return rho_nl(s, phi, X, n, l) * gsl_sf_legendre_sphPlm(l, m, X);
 }
 
-void grad_phi_nlm(double r, double phi, double X, double r_s, int n, int l, int m, double *grad) {
+void sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m, double *sphgrad) {
     double dPhi_dr, dPhi_dphi, dPhi_dtheta;
-    double s = r/r_s;
 
     // spherical coord stuff
     double sintheta = sqrt(1-X*X);
-    double cosphi = cos(phi);
-    double sinphi = sqrt(1-cosphi*cosphi);
-
     double cosmphi = cos(m*phi);
-    double scoeff, leg, ggn;
-    scoeff = pow(r,l) / pow(1+s,2*l+1) * gsl_sf_gegenpoly_n(n, 2*l + 1.5, (s-1)/(s+1));
-    leg = gsl_sf_legendre_Plm(l, m, X);
-    ggn = gsl_sf_gegenpoly_n(n, 1.5 + 2*l, (-1 + s)/(1 + s));
+
+    double Phi_nl, Ylm;
+    Phi_nl = phi_nl(s, phi, X, n, l);
+    Ylm = gsl_sf_legendre_sphPlm(l, m, X);
+
+    double ggn = gsl_sf_gegenpoly_n(n, 1.5 + 2*l, (-1 + s)/(1 + s));
 
     // copied out of Mathematica
     if (n == 0) {
-        dPhi_dr = -(pow(r_s,l)*pow(s,l-1)*pow(1+s,-2*l-3)*cosmphi*leg*
+        dPhi_dr = -(pow(r_s,l)*pow(s,l-1)*pow(1+s,-2*l-3)*cosmphi*Ylm*
             (1 + s)*(l*(-1 + s) + s)*ggn);
     } else {
-        dPhi_dr = -(pow(r_s,l)*pow(s,l-1)*pow(1+s,-2*l-3)*cosmphi*leg*
+        dPhi_dr = -(pow(r_s,l)*pow(s,l-1)*pow(1+s,-2*l-3)*cosmphi*Ylm*
             (-2*(3 + 4*l)*s*gsl_sf_gegenpoly_n(n-1, 2.5 + 2*l, (-1 + s)/(1 + s)) +
             (1 + s)*(l*(-1 + s) + s)*ggn));
     }
@@ -46,18 +51,20 @@ void grad_phi_nlm(double r, double phi, double X, double r_s, int n, int l, int 
     if (l==0) {
         dPhi_dtheta = 0.;
     } else if ((l-1) < m) {
-        dPhi_dtheta = scoeff * leg * l*X*leg / (r*sintheta);
+        dPhi_dtheta = l*X*Ylm / sintheta;
     } else {
-        dPhi_dtheta = scoeff * leg * (-l*X*leg + (l+m)*gsl_sf_legendre_Plm(l-1, m, X)) / (-r*sintheta);
+        dPhi_dtheta = (l*X*Ylm - (l+m)*gsl_sf_legendre_sphPlm(l-1, m, X)) / sintheta;
     }
+    dPhi_dtheta *= Phi_nl / s;
 
     if (m == 0) {
         dPhi_dphi = 0.;
     } else {
-        dPhi_dphi = scoeff * leg * (-m*sin(m*phi)) / (r*sintheta);
+        dPhi_dphi = m / sintheta;
     }
+    dPhi_dphi *= Ylm * Phi_nl / s;
 
-    grad[0] = -(sintheta*cosphi*dPhi_dr + X*cosphi*dPhi_dtheta - sinphi*dPhi_dphi);
-    grad[1] = -(sintheta*sinphi*dPhi_dr + X*sinphi*dPhi_dtheta + cosphi*dPhi_dphi);
-    grad[2] = -(X*dPhi_dr - sintheta*dPhi_dtheta);
+    grad[0] = dPhi_dr;
+    grad[1] = dPhi_dtheta;
+    grad[2] = dPhi_dphi;
 }

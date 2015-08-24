@@ -4,12 +4,13 @@
 #include "coeff_helper.h"
 #include <complex.h>
 
+#define SQRT_FOURPI 3.544907701811031;
+
 double cc_phi_nlm(double s, double phi, double X, int n, int l, int m) {
     /* Complex conjugate of phi_nlm */
     double RR;
-    double sqrt_fourpi = 3.544907701811031;
     RR = -pow(s,l) * pow(1+s, -2*l-1) * gsl_sf_gegenpoly_n(n, 2*l+1.5, (s-1)/(s+1));
-    return sqrt_fourpi * RR * gsl_sf_legendre_sphPlm(l, m, X);
+    return SQRT_FOURPI * RR * gsl_sf_legendre_sphPlm(l, m, X);
 }
 
 double STnlm_integrand_help(double phi, double X, double xsi,
