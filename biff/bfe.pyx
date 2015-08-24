@@ -116,15 +116,18 @@ cpdef gradient(double[:,::1] xyz,
             for l in range(lmax+1):
                 for m in range(l+1):
                     tmp = (Snlm[n,l,m]*cos(m*phi) + Tnlm[n,l,m]*sin(m*phi))
-                    tmp2 = (Tnlm[n,l,m]*cos(m*phi) - Snlm[n,l,m]*sin(m*phi))
 
                     sph_grad_phi_nlm(s, phi, X, n, l, m, &tmp_grad[0])
-                    grad[i,0] += (sintheta*cosphi*tmp_grad[0] + X*cosphi*tmp_grad[1] - sinphi*tmp_grad[2]) * tmp
-                    grad[i,1] += (sintheta*sinphi*tmp_grad[0] + X*sinphi*tmp_grad[1] + cosphi*tmp_grad[2]) * tmp
-                    grad[i,2] += (X*tmp_grad[0] - sintheta*tmp_grad[1]) * tmp2
+                    tmp_grad[0] *= tmp # r
+                    tmp_grad[1] *= tmp * sintheta / s # theta
+                    tmp_grad[2] *= (Tnlm[n,l,m]*cos(m*phi) - Snlm[n,l,m]*sin(m*phi)) / (s*sintheta) # phi
 
-        grad[i,0] *= G*M/(r_s*r_s)
-        grad[i,1] *= G*M/(r_s*r_s)
-        grad[i,2] *= G*M/(r_s*r_s)
+                    grad[i,0] += sintheta*cosphi*tmp_grad[0] + X*cosphi*tmp_grad[1] - sinphi*tmp_grad[2]
+                    grad[i,1] += sintheta*sinphi*tmp_grad[0] + X*sinphi*tmp_grad[1] + cosphi*tmp_grad[2]
+                    grad[i,2] += X*tmp_grad[0] - sintheta*tmp_grad[1]
+
+        grad[i,0] *= -G*M/(r_s*r_s)
+        grad[i,1] *= -G*M/(r_s*r_s)
+        grad[i,2] *= -G*M/(r_s*r_s)
 
     return np.array(grad)

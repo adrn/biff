@@ -61,7 +61,7 @@ void sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m, doubl
     }
     dPhi_dphi *= Ylm * Phi_nl / s;
 
-    sphgrad[0] = dPhi_dr;
+    sphgrad[0] = SQRT_FOURPI * dPhi_dr;
     sphgrad[1] = dPhi_dtheta;
     sphgrad[2] = dPhi_dphi;
 }
