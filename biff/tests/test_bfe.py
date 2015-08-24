@@ -33,8 +33,9 @@ def test_hernquist():
     nmax = 6
     lmax = 2
 
-    Anlm = np.zeros((nmax+1,lmax+1,lmax+1))
-    Anlm[0,0,0] = 1.
+    Snlm = np.zeros((nmax+1,lmax+1,lmax+1))
+    Tnlm = np.zeros((nmax+1,lmax+1,lmax+1))
+    Snlm[0,0,0] = 1.
 
     M = 1E10
     r_s = 3.5
@@ -42,16 +43,18 @@ def test_hernquist():
     nbins = 128
     rr = np.linspace(0.1,10.,nbins)
     xyz = np.zeros((nbins,3))
-    xyz[:,0] = rr
+    xyz[:,0] = rr * np.cos(np.pi/4.) * np.sin(np.pi/4.)
+    xyz[:,1] = rr * np.sin(np.pi/4.) * np.sin(np.pi/4.)
+    xyz[:,2] = rr * np.cos(np.pi/4.)
 
-    bfe_dens = density(xyz, M, r_s, Anlm, nmax, lmax)
+    bfe_dens = density(xyz, M, r_s, Snlm, Tnlm, nmax, lmax)
     true_dens = hernquist_density(xyz, M, r_s)
     np.testing.assert_allclose(bfe_dens, true_dens)
 
-    bfe_pot = potential(xyz, G, M, r_s, Anlm, nmax, lmax)
+    bfe_pot = potential(xyz, G, M, r_s,Snlm, Tnlm, nmax, lmax)
     true_pot = hernquist_potential(xyz, M, r_s)
     np.testing.assert_allclose(bfe_pot, true_pot)
 
-    bfe_grad = gradient(xyz, G, M, r_s, Anlm, nmax, lmax)
+    bfe_grad = gradient(xyz, G, M, r_s, Snlm, Tnlm, nmax, lmax)
     true_grad = hernquist_gradient(xyz, M, r_s)
     np.testing.assert_allclose(bfe_grad, true_grad)
