@@ -10,6 +10,7 @@ def get_extensions():
     coeff_cfg['include_dirs'].append('numpy')
     coeff_cfg['include_dirs'].append('biff/src')
     coeff_cfg['sources'].append('biff/computecoeff.pyx')
+    coeff_cfg['sources'].append('biff/src/bfe_helper.c')
     coeff_cfg['libraries'] = ['gsl', 'gslcblas']
 
     bfe_cfg = setup_helpers.DistutilsExtensionArgs()
