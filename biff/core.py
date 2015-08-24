@@ -9,11 +9,11 @@ import numpy as np
 import scipy.integrate as si
 
 # Project
-from ._computecoeff import Anlm_integrand
+from ._computecoeff import Snlm_integrand, Tnlm_integrand
 
-__all__ = ['compute_Anlm']
+__all__ = ['compute_coeffs']
 
-def compute_Anlm(density_func, nlm, M, r_s, args=(), **kwargs):
+def compute_coeffs(density_func, nlm, M, r_s, args=(), **kwargs):
     """
     Compute the expansion coefficients for representing the input
     density function as a basis function expansion.
@@ -60,7 +60,7 @@ def compute_Anlm(density_func, nlm, M, r_s, args=(), **kwargs):
 
     """
     nlm = np.array(nlm).astype(np.int32)
-    _args = np.array(args)
+    # _args = np.array(args)
 
     kwargs.setdefault('limit', 256)
     kwargs.setdefault('epsrel', 1E-10)
@@ -68,9 +68,15 @@ def compute_Anlm(density_func, nlm, M, r_s, args=(), **kwargs):
     limits = [[0,2*np.pi], # phi
               [-1,1.], # X (cos(theta))
               [-1,1.]] # xsi
-    Anlm = si.nquad(Anlm_integrand,
+
+    Snlm = si.nquad(Snlm_integrand,
                     ranges=limits,
-                    args=(density_func, nlm[0], nlm[1], nlm[2], M, r_s, _args),
+                    args=(density_func, nlm[0], nlm[1], nlm[2], M, r_s),
                     opts=kwargs)
 
-    return Anlm
+    Tnlm = si.nquad(Tnlm_integrand,
+                    ranges=limits,
+                    args=(density_func, nlm[0], nlm[1], nlm[2], M, r_s),
+                    opts=kwargs)
+
+    return Snlm, Tnlm
