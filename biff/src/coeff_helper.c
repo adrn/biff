@@ -2,6 +2,7 @@
 #include "gsl/gsl_sf_gegenbauer.h"
 #include <math.h>
 #include "coeff_helper.h"
+#include "bfe_helper.h"
 #include <complex.h>
 
 #define SQRT_FOURPI 3.544907701811031
@@ -17,7 +18,7 @@ double STnlm_integrand_help(double phi, double X, double xsi,
                             double density, int n, int l, int m) {
     /*
     Computes the integrand used to compute the expansion
-    coefficients, Anlm. The integral is done over:
+    coefficients, Snlm, Tnlm. The integral is done over:
 
         * phi: azimuthal angle
         * X: cos(theta), where theta is the colatitude
@@ -40,7 +41,7 @@ double STnlm_integrand_help(double phi, double X, double xsi,
 
     Anl = (-pow(2., 8*l+6) / (Knl * 4*M_PI) *
            (gsl_sf_fact(n) * (n + 2*l + 1.5) * pow(gsl_sf_gamma(2*l + 1.5),2)) / gsl_sf_gamma(n+4*l+3));
-    return Anl * 2 / (_tmp*_tmp) * s*s * cc_phi_nlm(s, phi, X, n, l, m);
+    return (2. - krond) * Anl / (_tmp*_tmp) * s*s * cc_phi_nlm(s, phi, X, n, l, m);
 }
 
 extern double Snlm_integrand(double phi, double X, double xsi,
