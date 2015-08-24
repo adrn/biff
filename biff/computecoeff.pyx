@@ -5,7 +5,7 @@
 # cython: wraparound=False
 # cython: profile=False
 
-""" Basis Function Expansion in Cython """
+""" THIS IS A THIN WRAPPER AROUND THE FUNCTIONS IN coeff_helper.c """
 
 from __future__ import division, print_function
 
@@ -17,45 +17,41 @@ from libc.math cimport M_PI
 
 cdef extern from "math.h":
     double sqrt(double x) nogil
-    double atan2(double y, double x) nogil
     double cos(double x) nogil
     double sin(double x) nogil
 
-cdef extern from "gsl/gsl_sf_gamma.h":
-    double gsl_sf_gamma(double x) nogil
-    double gsl_sf_fact(unsigned int n) nogil
-
 cdef extern from "src/coeff_helper.c":
-    double RR_Plm_cosmphi(double r, double phi, double X, double a, int n, int l, int m) nogil
+    double c_Snlm_integrand(double phi, double X, double xsi, double density, int n, int l, int m)
+    double c_Tnlm_integrand(double phi, double X, double xsi, double density, int n, int l, int m)
 
-__all__ = ['Anlm_integrand']
+__all__ = ['Snlm_integrand', 'Tnlm_integrand']
 
-cpdef Anlm_integrand(double phi, double X, double xsi,
+cpdef Snlm_integrand(double phi, double X, double xsi,
                      density_func,
                      int n, int l, int m,
-                     double M, double r_s,
-                     double[::1] args):
-    """
-    Anlm_integrand(phi, X, xsi, density_func, n, l, m, M, r_s, density_func_args)
-    """
+                     double M, double r_s):
     cdef:
-        double r = (1 + xsi) / (1 - xsi)
+        double s = (1 + xsi) / (1 - xsi)
+        double r = s * r_s
         double x = r * cos(phi) * sqrt(1-X*X)
         double y = r * sin(phi) * sqrt(1-X*X)
         double z = r * X
 
-        double Knl, Inl, tmp, tmp2, krond
+    return c_Snlm_integrand(phi, X, xsi,
+                            density_func(x, y, z, M, r_s) / M * r_s*r_s*r_s,
+                            n, l, m)
 
-    Knl = 0.5*n*(n + 4*l + 3) + (l + 1)*(2*l + 1)
-    tmp2 = (gsl_sf_gamma(n + 4*l + 3) / (gsl_sf_fact(n) *
-            (n + 2*l + 1.5) * gsl_sf_gamma(2*l + 1.5)**2))
-    if m == 0:
-        krond = 1.
-    else:
-        krond = 0.
+cpdef Tnlm_integrand(double phi, double X, double xsi,
+                     density_func,
+                     int n, int l, int m,
+                     double M, double r_s):
+    cdef:
+        double s = (1 + xsi) / (1 - xsi)
+        double r = s * r_s
+        double x = r * cos(phi) * sqrt(1-X*X)
+        double y = r * sin(phi) * sqrt(1-X*X)
+        double z = r * X
 
-    Inl = (Knl / 2**(8*l+6) * tmp2 * (1 + krond) * M_PI *
-           2/(2*l+1) * gsl_sf_fact(l+m) / gsl_sf_fact(l-m))
-    tmp = 2. / ((1-xsi)*(1-xsi))
-    return (RR_Plm_cosmphi(r, phi, X, r_s, n, l, m) * tmp / Inl *
-            density_func(x, y, z, args) / M)
+    return c_Tnlm_integrand(phi, X, xsi,
+                            density_func(x, y, z, M, r_s) / M * r_s*r_s*r_s,
+                            n, l, m)
