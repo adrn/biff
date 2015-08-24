@@ -20,8 +20,8 @@ cdef extern from "math.h":
     double sin(double x) nogil
 
 cdef extern from "src/bfe_helper.c":
-    double phi_nlm(double s, double phi, double X, int n, int l, int m) nogil
     double rho_nlm(double s, double phi, double X, int n, int l, int m) nogil
+    double phi_nlm(double s, double phi, double X, int n, int l, int m) nogil
     double sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m, double *grad) nogil
 
 __all__ = ['density', 'potential', 'gradient']
@@ -79,7 +79,7 @@ cpdef potential(double[:,::1] xyz,
         for n in range(nmax+1):
             for l in range(lmax+1):
                 for m in range(l+1):
-                    pot[i] += rho_nlm(s, phi, X, n, l, m) * (Snlm[n,l,m]*cos(m*phi) +
+                    pot[i] += phi_nlm(s, phi, X, n, l, m) * (Snlm[n,l,m]*cos(m*phi) +
                                                              Tnlm[n,l,m]*sin(m*phi))
 
         pot[i] *= G*M/r_s
