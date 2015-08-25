@@ -5,21 +5,21 @@
 
 #define SQRT_FOURPI 3.544907701811031
 
-double rho_nl(double s, double phi, double X, int n, int l) {
+double rho_nl(double s, int n, int l) {
     double RR, Knl;
     Knl = 0.5*n*(n+4*l+3) + (l+1)*(2*l+1);
     RR = Knl/(2*M_PI) * pow(s,l) / (s*pow(1+s,2*l+3)) * gsl_sf_gegenpoly_n(n, 2*l + 1.5, (s-1)/(s+1));
     return SQRT_FOURPI * RR;
 }
 double rho_nlm(double s, double phi, double X, int n, int l, int m) {
-    return rho_nl(s, phi, X, n, l) * gsl_sf_legendre_sphPlm(l, m, X);
+    return rho_nl(s, n, l) * gsl_sf_legendre_sphPlm(l, m, X);
 }
 
-double phi_nl(double s, double phi, double X, int n, int l) {
+double phi_nl(double s, int n, int l) {
     return SQRT_FOURPI * -pow(s,l) * pow(1+s, -2*l-1) * gsl_sf_gegenpoly_n(n, 2*l+1.5, (s-1)/(s+1));
 }
 double phi_nlm(double s, double phi, double X, int n, int l, int m) {
-    return phi_nl(s, phi, X, n, l) * gsl_sf_legendre_sphPlm(l, m, X);
+    return phi_nl(s, n, l) * gsl_sf_legendre_sphPlm(l, m, X);
 }
 
 void sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m, double *sphgrad) {
@@ -30,7 +30,7 @@ void sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m, doubl
     double cosmphi = cos(m*phi);
 
     double Phi_nl, Ylm;
-    Phi_nl = phi_nl(s, phi, X, n, l);
+    Phi_nl = phi_nl(s, n, l);
     Ylm = gsl_sf_legendre_sphPlm(l, m, X);
 
     double ggn = gsl_sf_gegenpoly_n(n, 1.5 + 2*l, (-1 + s)/(1 + s));
