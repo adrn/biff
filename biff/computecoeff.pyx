@@ -30,7 +30,7 @@ __all__ = ['Snlm_integrand', 'Tnlm_integrand']
 cpdef Snlm_integrand(double phi, double X, double xsi,
                      density_func,
                      int n, int l, int m,
-                     double M, double r_s):
+                     double M, double r_s, args):
     cdef:
         double s = (1 + xsi) / (1 - xsi)
         double r = s * r_s
@@ -39,13 +39,13 @@ cpdef Snlm_integrand(double phi, double X, double xsi,
         double z = r * X
 
     return c_Snlm_integrand(phi, X, xsi,
-                            density_func(x, y, z, M, r_s) / M * r_s*r_s*r_s,
+                            density_func(x, y, z, args) / M * r_s*r_s*r_s,
                             n, l, m)
 
 cpdef Tnlm_integrand(double phi, double X, double xsi,
                      density_func,
                      int n, int l, int m,
-                     double M, double r_s):
+                     double M, double r_s, args):
     cdef:
         double s = (1 + xsi) / (1 - xsi)
         double r = s * r_s
@@ -54,7 +54,7 @@ cpdef Tnlm_integrand(double phi, double X, double xsi,
         double z = r * X
 
     return c_Tnlm_integrand(phi, X, xsi,
-                            density_func(x, y, z, M, r_s) / M * r_s*r_s*r_s,
+                            density_func(x, y, z, args) / M * r_s*r_s*r_s,
                             n, l, m)
 
 cpdef STnlm_discrete(double[::1] s, double[::1] phi, double[::1] X,

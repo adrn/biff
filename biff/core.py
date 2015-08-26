@@ -64,7 +64,6 @@ def compute_coeffs(density_func, nlm, M, r_s, args=(), **kwargs):
 
     """
     nlm = np.array(nlm).astype(np.int32)
-    # _args = np.array(args)
 
     kwargs.setdefault('limit', 256)
     kwargs.setdefault('epsrel', 1E-10)
@@ -75,12 +74,12 @@ def compute_coeffs(density_func, nlm, M, r_s, args=(), **kwargs):
 
     Snlm = si.nquad(Snlm_integrand,
                     ranges=limits,
-                    args=(density_func, nlm[0], nlm[1], nlm[2], M, r_s),
+                    args=(density_func, nlm[0], nlm[1], nlm[2], M, r_s, args),
                     opts=kwargs)
 
     Tnlm = si.nquad(Tnlm_integrand,
                     ranges=limits,
-                    args=(density_func, nlm[0], nlm[1], nlm[2], M, r_s),
+                    args=(density_func, nlm[0], nlm[1], nlm[2], M, r_s, args),
                     opts=kwargs)
 
     return Snlm, Tnlm
