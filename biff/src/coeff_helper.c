@@ -58,22 +58,26 @@ extern double c_Tnlm_integrand(double phi, double X, double xsi,
 
 extern void c_STnlm_discrete(double *s, double *phi, double *X, double *m_k, int K,
                              int n, int l, int m, double *ST) {
-    double _tmp, krond;
+    // Taken from Eq. 16 of Lowing et al.
     double Knl = 0.5*n*(n + 4*l + 3) + (l + 1)*(2*l + 1);
-    double _tmp2 = (gsl_sf_gamma(n + 4*l + 3) / (gsl_sf_fact(n) * (n + 2*l + 1.5) * pow(gsl_sf_gamma(2*l + 1.5),2)));
 
+    double krond, _tmp;
     if (m == 0) {
         krond = 1.;
     } else {
         krond = 0.;
     }
-    double Anl = (2.-krond)/(Knl / pow(2., 8*l+6) * _tmp2 * (1 + krond) * M_PI * 2./(2*l+1.) * gsl_sf_fact(l+m) / gsl_sf_fact(l-m));
+
+    double Anl = -pow(2., 8*l+6) / (4*M_PI*Knl) * \
+                 (gsl_sf_fact(n) * (n + 2*l + 1.5) * pow(gsl_sf_gamma(2*l + 1.5),2)) / \
+                 gsl_sf_gamma(n + 4*l + 3);
+    double coeff = Anl * (2.-krond);
 
     // zero out coeff storage array
     ST[0] = 0.;
     ST[1] = 0.;
     for (int k=0; k<K; k++) {
-        _tmp = Anl * m_k[k] * phi_nlm(s[k], phi[k], X[k], n, l, m);
+        _tmp = coeff * m_k[k] * phi_nlm(s[k], phi[k], X[k], n, l, m);
         ST[0] += _tmp * cos(m*phi[k]); // Snlm
         ST[1] += _tmp * sin(m*phi[k]); // Tnlm
     }
