@@ -137,9 +137,11 @@ double scf_value(double t, double *pars, double *q) {
                 G, M, r_s,
                 &pars[5], &pars[5+num_coeff],
                 nmax, lmax, &val[0]);
+
+    return val[0];
 }
 
-void scf_gradient(double t, double *pars, double *q) {
+void scf_gradient(double t, double *pars, double *q, double *grad) {
     /*  pars:
         - G (Gravitational constant)
         - m (mass scale)
@@ -154,7 +156,6 @@ void scf_gradient(double t, double *pars, double *q) {
     int nmax = (int)pars[3];
     int lmax = (int)pars[4];
 
-    double grad[3] = {0.};
     int n,l,m;
 
     int num_coeff = 0;
