@@ -92,6 +92,8 @@ cpdef gradient(double[:,::1] xyz,
 
     return np.array(grad)
 
+# ------------------------------------------------------
+
 cdef class _SCFPotential(_CPotential):
     # double[:,:,::1] sin_coeff, double[:,:,::1] cos_coeff):
     # np.ndarray[np.float64_t, ndim=3] sin_coeff,
@@ -108,16 +110,32 @@ cdef class _SCFPotential(_CPotential):
 
 class SCFPotential(CPotentialBase):
     r"""
-    SCFPotential(units, TODO)
+    SCFPotential(m, r_s, cos_coeff, sin_coeff, units)
 
-    TODO:
+    An SCF / basis function expansion potential. Follows the
+    convention used in Hernquist & Ostriker (1992) and
+    Lowing et al. (2011) for representing all coefficients as
+    real quantities.
 
     Parameters
     ----------
+    m : numeric
+        Scale mass.
+    r_s : numeric
+        Scale length.
+    cos_coeff : array_like
+        Array of coefficients for the cosine terms of the expansion.
+        This should be a 3D array with shape `(nmax+1, lmax+1, lmax+1)`,
+        where `nmax` is the number of radial expansion terms and `lmax`
+        is the number of spherical harmonic `l` terms.
+    sin_coeff : array_like
+        Array of coefficients for the sine terms of the expansion.
+        This should be a 3D array with shape `(nmax+1, lmax+1, lmax+1)`,
+        where `nmax` is the number of radial expansion terms and `lmax`
+        is the number of spherical harmonic `l` terms.
     units : iterable
         Unique list of non-reducable units that specify (at minimum) the
         length, mass, time, and angle units.
-    TODO
 
     """
     def __init__(self, m, r_s, cos_coeff, sin_coeff, units=galactic):
