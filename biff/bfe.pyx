@@ -44,7 +44,8 @@ cdef extern from "src/bfe.c":
     double scf_value(double t, double *pars, double *q) nogil
     void scf_gradient(double t, double *pars, double *q, double *grad) nogil
 
-__all__ = ['density', 'potential', 'gradient']
+__all__ = ['density', 'potential', 'gradient',
+           'SCFPotential']
 
 cpdef density(double[:,::1] xyz,
               double M, double r_s,
