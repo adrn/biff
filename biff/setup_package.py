@@ -21,3 +21,6 @@ def get_extensions():
 
     return [Extension('biff._computecoeff', **coeff_cfg),
             Extension('biff._bfe', **bfe_cfg)]
+
+def get_package_data():
+    return {'biff': ['src/*.h']}
