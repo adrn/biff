@@ -9,9 +9,15 @@ from __future__ import division, print_function
 
 __author__ = "adrn <adrn@astro.columbia.edu>"
 
+from astropy.constants import G
 import numpy as np
 cimport numpy as np
 from libc.math cimport M_PI
+
+# Gary
+from gary.units import galactic
+from gary.potential.cpotential cimport _CPotential
+from gary.potential.cpotential import CPotentialBase
 
 cdef extern from "math.h":
     double sqrt(double x) nogil
@@ -34,6 +40,9 @@ cdef extern from "src/bfe.c":
     void c_gradient(double *xyz, int K, double G, double M, double r_s,
                     double *Snlm, double *Tnlm,
                     int nmax, int lmax, double *grad) nogil
+
+    double scf_value(double t, double *pars, double *q) nogil
+    void scf_gradient(double t, double *pars, double *q, double *grad) nogil
 
 __all__ = ['density', 'potential', 'gradient']
 
@@ -81,3 +90,54 @@ cpdef gradient(double[:,::1] xyz,
                nmax, lmax, &grad[0,0])
 
     return np.array(grad)
+
+cdef class _SCFPotential(_CPotential):
+    # double[:,:,::1] sin_coeff, double[:,:,::1] cos_coeff):
+    # np.ndarray[np.float64_t, ndim=3] sin_coeff,
+    # np.ndarray[np.float64_t, ndim=3] cos_coeff):
+    def __cinit__(self, double G, double m, double r_s,
+                  int nmax, int lmax,
+                  *args):
+        self._parvec = np.concatenate([[G,m,r_s,nmax,lmax],args])
+                                       # sin_coeff.ravel(),
+                                       # cos_coeff.ravel()])
+        self._parameters = &(self._parvec[0])
+        self.c_value = &scf_value
+        self.c_gradient = &scf_gradient
+
+class SCFPotential(CPotentialBase):
+    r"""
+    SCFPotential(units, TODO)
+
+    TODO:
+
+    Parameters
+    ----------
+    units : iterable
+        Unique list of non-reducable units that specify (at minimum) the
+        length, mass, time, and angle units.
+    TODO
+
+    """
+    def __init__(self, m, r_s, cos_coeff, sin_coeff, units=galactic):
+        self.G = G.decompose(units).value
+        self.parameters = dict()
+        self.parameters['m'] = m
+        self.parameters['r_s'] = r_s
+        self.parameters['cos_coeff'] = np.array(cos_coeff)
+        self.parameters['sin_coeff'] = np.array(sin_coeff)
+        super(SCFPotential, self).__init__(units=units)
+
+        nmax = sin_coeff.shape[0]-1
+        lmax = sin_coeff.shape[1]-1
+
+        # c_params = self.parameters.copy()
+        # c_params['G'] = self.G
+        # c_params.pop('sin_coeff')
+        # c_params.pop('cos_coeff')
+        coeff = np.concatenate((cos_coeff.ravel(), sin_coeff.ravel()))
+        params1 = [self.G, self.parameters['m'], self.parameters['r_s'],
+                   nmax, lmax]
+        c_params = np.array(params1 + coeff.tolist())
+        # self.c_instance = _SCFPotential(*coeff, **c_params)
+        self.c_instance = _SCFPotential(*c_params)
