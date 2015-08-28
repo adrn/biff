@@ -43,15 +43,19 @@ void c_potential(double *xyz, int K,
         s = r/r_s;
         X = xyz[j+2]/r; // cos(theta)
         phi = atan2(xyz[j+1], xyz[j+0]);
+
+        i = 0;
         for (n=0; n<(nmax+1); n++) {
             for (l=0; l<(lmax+1); l++) {
                 for (m=0; m<(lmax+1); m++) {
-                    if (m > l)
+                    if (m > l) {
+                        i++;
                         continue;
+                    }
 
-                    i = n + (lmax+1) * (l + (lmax+1) * m);
                     val[k] += phi_nlm(s, phi, X, n, l, m) * (Snlm[i]*cos(m*phi) +
                                                              Tnlm[i]*sin(m*phi));
+                    i++;
                 }
             }
         }
@@ -80,13 +84,15 @@ void c_gradient(double *xyz, int K,
         cosphi = cos(phi);
         sinphi = sin(phi);
 
+        i = 0;
         for (n=0; n<(nmax+1); n++) {
             for (l=0; l<(lmax+1); l++) {
                 for (m=0; m<(lmax+1); m++) {
-                    if (m > l)
+                    if (m > l) {
+                        i++;
                         continue;
+                    }
 
-                    i = n + (lmax+1) * (l + (lmax+1) * m);
                     tmp = (Snlm[i]*cos(m*phi) + Tnlm[i]*sin(m*phi));
 
                     sph_grad_phi_nlm(s, phi, X, n, l, m, &tmp_grad[0]);
@@ -97,6 +103,8 @@ void c_gradient(double *xyz, int K,
                     grad[j+0] += sintheta*cosphi*tmp_grad[0] + X*cosphi*tmp_grad[1] - sinphi*tmp_grad[2];
                     grad[j+1] += sintheta*sinphi*tmp_grad[0] + X*sinphi*tmp_grad[1] + cosphi*tmp_grad[2];
                     grad[j+2] += X*tmp_grad[0] - sintheta*tmp_grad[1];
+
+                    i++;
                 }
             }
         }
@@ -122,6 +130,7 @@ double scf_value(double t, double *pars, double *q) {
     int lmax = (int)pars[4];
 
     double val[1] = {0.};
+    double _val;
     int n,l,m;
 
     int num_coeff = 0;
@@ -138,7 +147,8 @@ double scf_value(double t, double *pars, double *q) {
                 &pars[5], &pars[5+num_coeff],
                 nmax, lmax, &val[0]);
 
-    return val[0];
+    _val = val[0];
+    return _val;
 }
 
 void scf_gradient(double t, double *pars, double *q, double *grad) {
