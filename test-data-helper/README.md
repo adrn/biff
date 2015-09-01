@@ -9,4 +9,5 @@ Then you need to move them in to the data path. From the top level Biff director
 
 ```
 cp test-data-helper/*.dat.gz biff/data/
+cp test-data-helper/*.coeff biff/data/
 ```
