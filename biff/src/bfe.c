@@ -71,7 +71,7 @@ void c_gradient(double *xyz, int K,
     int i,j,k, n,l,m;
     double r, s, X, phi;
     double sintheta, cosphi, sinphi, tmp;
-    double tmp_grad[3] = {0.};
+    double tmp_grad[3];
 
     for (k=0; k<K; k++) {
         j = 3*k;
@@ -83,6 +83,11 @@ void c_gradient(double *xyz, int K,
         sintheta = sqrt(1 - X*X);
         cosphi = cos(phi);
         sinphi = sin(phi);
+
+        // zero out -- hack!
+        grad[j+0] = 0.;
+        grad[j+1] = 0.;
+        grad[j+2] = 0.;
 
         i = 0;
         for (n=0; n<(nmax+1); n++) {
