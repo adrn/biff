@@ -16,10 +16,10 @@ double rho_nlm(double s, double phi, double X, int n, int l, int m) {
 }
 
 double phi_nl(double s, int n, int l) {
-    return SQRT_FOURPI * -pow(s,l) * pow(1+s, -2*l-1) * gsl_sf_gegenpoly_n(n, 2*l+1.5, (s-1)/(s+1));
+    return -pow(s,l) * pow(1+s, -2*l-1) * gsl_sf_gegenpoly_n(n, 2*l+1.5, (s-1)/(s+1));
 }
 double phi_nlm(double s, double phi, double X, int n, int l, int m) {
-    return phi_nl(s, n, l) * gsl_sf_legendre_sphPlm(l, m, X);
+    return phi_nl(s, n, l) * gsl_sf_legendre_Plm(l, m, X);
 }
 
 void sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m, double *sphgrad) {

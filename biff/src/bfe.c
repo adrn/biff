@@ -44,6 +44,12 @@ void c_potential(double *xyz, int K,
         X = xyz[j+2]/r; // cos(theta)
         phi = atan2(xyz[j+1], xyz[j+0]);
 
+        // HACK: zero out before filling;
+        val[k] = 0.;
+
+        // TODO: could speed this up by moving call to legendre out of n loop
+        // TODO: also precompute all cos(m phi), sin(m phi)
+        // TODO: note, if I do this I need to go from 3D to 1D array in different way...
         i = 0;
         for (n=0; n<(nmax+1); n++) {
             for (l=0; l<(lmax+1); l++) {
