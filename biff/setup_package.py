@@ -23,4 +23,4 @@ def get_extensions():
             Extension('biff._bfe', **bfe_cfg)]
 
 def get_package_data():
-    return {'biff': ['src/*.h', 'data/*.dat.gz']}
+    return {'biff': ['src/*.h', 'data/*.dat.gz', 'data/*.coeff']}
