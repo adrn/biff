@@ -51,6 +51,9 @@ cpdef density(double[:,::1] xyz,
               double M, double r_s,
               double[:,:,::1] Snlm, double[:,:,::1] Tnlm,
               int nmax, int lmax):
+    """
+    density(xyz, M, r_s, cos_coeff, sin_coeff, nmax, lmax)
+    """
 
     cdef:
         int ncoords = xyz.shape[0]
@@ -66,7 +69,9 @@ cpdef potential(double[:,::1] xyz,
                 double G, double M, double r_s,
                 double[:,:,::1] Snlm, double[:,:,::1] Tnlm,
                 int nmax, int lmax):
-
+    """
+    potential(xyz, G, M, r_s, cos_coeff, sin_coeff, nmax, lmax)
+    """
     cdef:
         int ncoords = xyz.shape[0]
         double[::1] potv = np.zeros(ncoords)
@@ -81,7 +86,9 @@ cpdef gradient(double[:,::1] xyz,
                double G, double M, double r_s,
                double[:,:,::1] Snlm, double[:,:,::1] Tnlm,
                int nmax, int lmax):
-
+    """
+    gradient(xyz, G, M, r_s, cos_coeff, sin_coeff, nmax, lmax)
+    """
     cdef:
         int ncoords = xyz.shape[0]
         double[:,::1] grad = np.zeros((ncoords,3))
