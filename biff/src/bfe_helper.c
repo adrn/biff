@@ -9,10 +9,10 @@ double rho_nl(double s, int n, int l) {
     double RR, Knl;
     Knl = 0.5*n*(n+4*l+3) + (l+1)*(2*l+1);
     RR = Knl/(2*M_PI) * pow(s,l) / (s*pow(1+s,2*l+3)) * gsl_sf_gegenpoly_n(n, 2*l + 1.5, (s-1)/(s+1));
-    return SQRT_FOURPI * RR;
+    return RR;
 }
 double rho_nlm(double s, double phi, double X, int n, int l, int m) {
-    return rho_nl(s, n, l) * gsl_sf_legendre_sphPlm(l, m, X);
+    return rho_nl(s, n, l) * gsl_sf_legendre_Plm(l, m, X);
 }
 
 double phi_nl(double s, int n, int l) {
