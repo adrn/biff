@@ -248,6 +248,11 @@ C       potext(k)=0.0d0
            sinth=SQRT(1.-costh**2)
            ath= -sinth*ath/r
            aphi=aphi/(r*sinth)
+
+C           IF (k.eq.1) THEN
+C             WRITE(*,*) ar,ath,aphi
+C           ENDIF
+
            ax(k)=G*(sinth*cosp*ar+costh*cosp*ath-
      &           sinp*aphi)
            ay(k)=G*(sinth*sinp*ar+costh*sinp*ath+
