@@ -105,5 +105,5 @@ def test_gradient(basename):
 
     # I output the acceleration from SCF when I make the files
     #   so I have no idea why I don't need a minus sign here...
-    scf_grad = -accp[:,:3]
+    scf_grad = accp[:,:3]
     np.testing.assert_allclose(grad, scf_grad, rtol=1E-6)

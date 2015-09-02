@@ -27,7 +27,6 @@ void sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m, doubl
 
     // spherical coord stuff
     double sintheta = sqrt(1-X*X);
-    double cosmphi = cos(m*phi);
 
     double Phi_nl, Ylm;
     Phi_nl = phi_nl(s, n, l);

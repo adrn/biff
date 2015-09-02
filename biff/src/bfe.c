@@ -124,9 +124,9 @@ void c_gradient(double *xyz, int K,
         grad[j+1] = sintheta*sinphi*tmp_grad[0] + X*sinphi*tmp_grad[1] + cosphi*tmp_grad[2];
         grad[j+2] = X*tmp_grad[0] - sintheta*tmp_grad[1];
 
-        grad[j+0] *= -G*M/(r_s*r_s);
-        grad[j+1] *= -G*M/(r_s*r_s);
-        grad[j+2] *= -G*M/(r_s*r_s);
+        grad[j+0] *= G*M/(r_s*r_s);
+        grad[j+1] *= G*M/(r_s*r_s);
+        grad[j+2] *= G*M/(r_s*r_s);
     }
 }
 
