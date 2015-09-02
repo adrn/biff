@@ -107,18 +107,23 @@ void c_gradient(double *xyz, int K,
                     tmp = (Snlm[i]*cos(m*phi) + Tnlm[i]*sin(m*phi));
 
                     sph_grad_phi_nlm(s, phi, X, n, l, m, &tmp_grad[0]);
-                    tmp_grad[0] *= tmp; // r
-                    tmp_grad[1] *= tmp * sintheta / s; // theta
-                    tmp_grad[2] *= (Tnlm[i]*cos(m*phi) - Snlm[i]*sin(m*phi)) / (s*sintheta); // phi
-
-                    grad[j+0] += sintheta*cosphi*tmp_grad[0] + X*cosphi*tmp_grad[1] - sinphi*tmp_grad[2];
-                    grad[j+1] += sintheta*sinphi*tmp_grad[0] + X*sinphi*tmp_grad[1] + cosphi*tmp_grad[2];
-                    grad[j+2] += X*tmp_grad[0] - sintheta*tmp_grad[1];
+                    grad[j+0] += tmp_grad[0] * tmp; // r
+                    grad[j+1] += tmp_grad[1] * -tmp / s; // theta
+                    grad[j+2] += tmp_grad[2] * (Tnlm[i]*cos(m*phi) - Snlm[i]*sin(m*phi)) / (s*sintheta); // phi
 
                     i++;
                 }
             }
         }
+        tmp_grad[0] = grad[j+0];
+        tmp_grad[1] = grad[j+1];
+        tmp_grad[2] = grad[j+2];
+
+        // transform to cartesian
+        grad[j+0] = sintheta*cosphi*tmp_grad[0] + X*cosphi*tmp_grad[1] - sinphi*tmp_grad[2];
+        grad[j+1] = sintheta*sinphi*tmp_grad[0] + X*sinphi*tmp_grad[1] + cosphi*tmp_grad[2];
+        grad[j+2] = X*tmp_grad[0] - sintheta*tmp_grad[1];
+
         grad[j+0] *= -G*M/(r_s*r_s);
         grad[j+1] *= -G*M/(r_s*r_s);
         grad[j+2] *= -G*M/(r_s*r_s);
