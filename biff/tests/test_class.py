@@ -26,7 +26,7 @@ def test_hernquist():
     sin_coeff = np.zeros((nmax+1,lmax+1,lmax+1))
     cos_coeff[0,0,0] = 1.
     scf_potential = SCFPotential(m=M, r_s=r_s,
-                                 cos_coeff=cos_coeff, sin_coeff=sin_coeff,
+                                 Snlm=cos_coeff, Tnlm=sin_coeff,
                                  units=galactic)
 
     nbins = 128
