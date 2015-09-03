@@ -10,14 +10,13 @@ import os
 # Third-party
 import astropy.units as u
 from astropy.constants import G as _G
+from astropy.utils.data import get_pkg_data_filename
+from astropy.tests.helper import pytest
 G = _G.decompose([u.kpc,u.Myr,u.Msun]).value
 import numpy as np
 
 # Project
 from .._bfe import density, potential, gradient
-
-from astropy.utils.data import get_pkg_data_filename
-from astropy.tests.helper import pytest
 
 @pytest.mark.parametrize("basename", [
     'simple-hernquist', 'random', 'wang-zhao',
