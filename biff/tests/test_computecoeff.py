@@ -25,3 +25,5 @@ def test_hernquist():
 
             np.testing.assert_allclose(T, 0.)
             np.testing.assert_allclose(Terr, 0., atol=1E-10)
+
+# TODO: add a test for a flattened something potential, maybe mildly flattened NFW?

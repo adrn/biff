@@ -8,16 +8,16 @@ import os
 
 # Third-party
 import numpy as np
+from astropy.utils.data import get_pkg_data_filename
 
 # Project
 from ..core import compute_coeffs_discrete
 from .._bfe import potential
 
-# HACK!
-test_data_path = "/Users/adrian/projects/biff/test-data/plummer.txt"
+pos_path = os.path.abspath(get_pkg_data_filename('../data/plummer-pos.dat.gz'))
 
 def test_plummer():
-    scfbi = scfbi = np.loadtxt(test_data_path)
+    scfbi = scfbi = np.loadtxt(pos_path)
     m_k = scfbi[:,0]
     xyz = scfbi[:,1:4]
 
@@ -46,6 +46,6 @@ def test_plummer():
         ixs = np.delete(ixs, ix)
 
         val = -np.sum(m_k[ixs] / np.linalg.norm(xyz[ixs] - xyz[ix], axis=-1))
-        biff_val = potential(np.ascontiguousarray(xyz[ix][None]), G, M, r_s, Snlm, Tnlm, nmax, lmax)[0]
+        biff_val = potential(np.ascontiguousarray(xyz[ix][None]), Snlm, Tnlm, nmax, lmax, G=G, M=M, r_s=r_s)[0]
 
         np.testing.assert_allclose(val, biff_val, rtol=0.05) # 5% tolerance
