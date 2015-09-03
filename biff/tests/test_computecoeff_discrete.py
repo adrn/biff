@@ -47,5 +47,4 @@ def test_plummer():
 
         val = -np.sum(m_k[ixs] / np.linalg.norm(xyz[ixs] - xyz[ix], axis=-1))
         biff_val = potential(np.ascontiguousarray(xyz[ix][None]), Snlm, Tnlm, nmax, lmax, G=G, M=M, r_s=r_s)[0]
-
-        np.testing.assert_allclose(val, biff_val, rtol=0.05) # 5% tolerance
+        np.testing.assert_allclose(val, biff_val, rtol=3E-2) # 3% tolerance
