@@ -12,9 +12,9 @@ Hernquist & Ostriker (1992).
 
 .. _user-docs:
 
-******************
+==================
 User Documentation
-******************
+==================
 
 **Halotools Overview**
 ----------------------------
