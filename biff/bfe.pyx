@@ -44,15 +44,55 @@ cdef extern from "src/bfe.c":
     double scf_value(double t, double *pars, double *q) nogil
     void scf_gradient(double t, double *pars, double *q, double *grad) nogil
 
-__all__ = ['density', 'potential', 'gradient',
-           'SCFPotential']
+__all__ = ['density', 'potential', 'gradient', 'SCFPotential']
 
 cpdef density(double[:,::1] xyz,
-              double M, double r_s,
               double[:,:,::1] Snlm, double[:,:,::1] Tnlm,
-              int nmax, int lmax):
+              int nmax, int lmax,
+              double M=1., double r_s=1.):
     """
-    density(xyz, M, r_s, cos_coeff, sin_coeff, nmax, lmax)
+    density(xyz, Snlm, Tnlm, nmax, lmax, M=1, r_s=1)
+
+    Compute the density of the basis function expansion
+    at a set of positions given the expansion coefficients.
+
+    Parameters
+    ----------
+    xyz : `~numpy.ndarray`
+        A 2D array of positions where ``axis=0`` are the different
+        points and ``axis=1`` are the coordinate dimensions x, y, z.
+    Snlm : `~numpy.ndarray`
+        A 3D array of expansion coefficients for the cosine terms
+        of the expansion. This notation follows Lowing et al. (2011).
+        The array should have shape ``(nmax+1,lmax+1,lmax+1)`` and any
+        invalid terms (e.g., when m > l) will be ignored.
+    Tnlm : `~numpy.ndarray`
+        A 3D array of expansion coefficients for the sine terms
+        of the expansion. This notation follows Lowing et al. (2011).
+        The array should have shape ``(nmax+1,lmax+1,lmax+1)`` and any
+        invalid terms (e.g., when m > l) will be ignored.
+    nmax : int
+        Number of radial expansion terms.
+    lmax : int
+        Maximum ``l`` value for the spherical harmonics.
+    M : numeric (optional)
+        Mass scale. Leave unset for dimensionless units.
+    r_s : numeric (optional)
+        Length scale. Leave unset for dimensionless units.
+
+    Returns
+    -------
+    dens : `~numpy.ndarray`
+        A 1D array of the density at each input position.
+        Will have the same length as the input position array, ``xyz``.
+
+    TODOs
+    -----
+
+    * Rework this so it accepts an array of nlm's with the same
+        shape as the coefficients so the user doesn't always have to
+        pass in a full 3D array.
+
     """
 
     cdef:
@@ -66,11 +106,54 @@ cpdef density(double[:,::1] xyz,
     return np.array(dens)
 
 cpdef potential(double[:,::1] xyz,
-                double G, double M, double r_s,
                 double[:,:,::1] Snlm, double[:,:,::1] Tnlm,
-                int nmax, int lmax):
+                int nmax, int lmax,
+                double G=1., double M=1., double r_s=1.):
     """
-    potential(xyz, G, M, r_s, cos_coeff, sin_coeff, nmax, lmax)
+    potential(xyz, Snlm, Tnlm, nmax, lmax, G=1, M=1, r_s=1)
+
+    Compute the gravitational potential of the basis function expansion
+    at a set of positions given the expansion coefficients.
+
+    Parameters
+    ----------
+    xyz : `~numpy.ndarray`
+        A 2D array of positions where ``axis=0`` are the different
+        points and ``axis=1`` are the coordinate dimensions x, y, z.
+    Snlm : `~numpy.ndarray`
+        A 3D array of expansion coefficients for the cosine terms
+        of the expansion. This notation follows Lowing et al. (2011).
+        The array should have shape ``(nmax+1,lmax+1,lmax+1)`` and any
+        invalid terms (e.g., when m > l) will be ignored.
+    Tnlm : `~numpy.ndarray`
+        A 3D array of expansion coefficients for the sine terms
+        of the expansion. This notation follows Lowing et al. (2011).
+        The array should have shape ``(nmax+1,lmax+1,lmax+1)`` and any
+        invalid terms (e.g., when m > l) will be ignored.
+    nmax : int
+        Number of radial expansion terms.
+    lmax : int
+        Maximum ``l`` value for the spherical harmonics.
+    G : numeric (optional)
+        Gravitational constant. Leave unset for dimensionless units.
+    M : numeric (optional)
+        Mass scale. Leave unset for dimensionless units.
+    r_s : numeric (optional)
+        Length scale. Leave unset for dimensionless units.
+
+    Returns
+    -------
+    pot : `~numpy.ndarray`
+        A 1D array of the value of the potential at each input position.
+        Will have the same length as the input position array, ``xyz``.
+
+    TODOs
+    -----
+
+    * Rework this so it accepts an array of nlm's with the same
+        shape as the coefficients so the user doesn't always have to
+        pass in a full 3D array.
+
     """
     cdef:
         int ncoords = xyz.shape[0]
@@ -83,11 +166,55 @@ cpdef potential(double[:,::1] xyz,
     return np.array(potv)
 
 cpdef gradient(double[:,::1] xyz,
-               double G, double M, double r_s,
                double[:,:,::1] Snlm, double[:,:,::1] Tnlm,
-               int nmax, int lmax):
+               int nmax, int lmax,
+               double G=1, double M=1, double r_s=1):
     """
-    gradient(xyz, G, M, r_s, cos_coeff, sin_coeff, nmax, lmax)
+    gradient(xyz, Snlm, Tnlm, nmax, lmax, G=1, M=1, r_s=1)
+
+    Compute the gradient of the gravitational potential of the
+    basis function expansion at a set of positions given the
+    expansion coefficients.
+
+    Parameters
+    ----------
+    xyz : `~numpy.ndarray`
+        A 2D array of positions where ``axis=0`` are the different
+        points and ``axis=1`` are the coordinate dimensions x, y, z.
+    Snlm : `~numpy.ndarray`
+        A 3D array of expansion coefficients for the cosine terms
+        of the expansion. This notation follows Lowing et al. (2011).
+        The array should have shape ``(nmax+1,lmax+1,lmax+1)`` and any
+        invalid terms (e.g., when m > l) will be ignored.
+    Tnlm : `~numpy.ndarray`
+        A 3D array of expansion coefficients for the sine terms
+        of the expansion. This notation follows Lowing et al. (2011).
+        The array should have shape ``(nmax+1,lmax+1,lmax+1)`` and any
+        invalid terms (e.g., when m > l) will be ignored.
+    nmax : int
+        Number of radial expansion terms.
+    lmax : int
+        Maximum ``l`` value for the spherical harmonics.
+    G : numeric (optional)
+        Gravitational constant. Leave unset for dimensionless units.
+    M : numeric (optional)
+        Mass scale. Leave unset for dimensionless units.
+    r_s : numeric (optional)
+        Length scale. Leave unset for dimensionless units.
+
+    Returns
+    -------
+    grad : `~numpy.ndarray`
+        A 2D array of the gradient of the potential at each input position.
+        Will have the same shape as the input position array, ``xyz``.
+
+    TODOs
+    -----
+
+    * Rework this so it accepts an array of nlm's with the same
+        shape as the coefficients so the user doesn't always have to
+        pass in a full 3D array.
+
     """
     cdef:
         int ncoords = xyz.shape[0]
@@ -117,7 +244,7 @@ cdef class _SCFPotential(_CPotential):
 
 class SCFPotential(CPotentialBase):
     r"""
-    SCFPotential(m, r_s, cos_coeff, sin_coeff, units)
+    SCFPotential(M, r_s, Snlm, Tnlm, units)
 
     An SCF / basis function expansion potential. Follows the
     convention used in Hernquist & Ostriker (1992) and
@@ -130,12 +257,12 @@ class SCFPotential(CPotentialBase):
         Scale mass.
     r_s : numeric
         Scale length.
-    cos_coeff : array_like
+    Snlm : array_like
         Array of coefficients for the cosine terms of the expansion.
         This should be a 3D array with shape `(nmax+1, lmax+1, lmax+1)`,
         where `nmax` is the number of radial expansion terms and `lmax`
         is the number of spherical harmonic `l` terms.
-    sin_coeff : array_like
+    Tnlm : array_like
         Array of coefficients for the sine terms of the expansion.
         This should be a 3D array with shape `(nmax+1, lmax+1, lmax+1)`,
         where `nmax` is the number of radial expansion terms and `lmax`
@@ -145,23 +272,25 @@ class SCFPotential(CPotentialBase):
         length, mass, time, and angle units.
 
     """
-    def __init__(self, m, r_s, cos_coeff, sin_coeff, units=galactic):
+    def __init__(self, m, r_s, Snlm, Tnlm, units=galactic):
+        Snlm = np.array(Snlm)
+        Tnlm = np.array(Tnlm)
         self.G = G.decompose(units).value
         self.parameters = dict()
         self.parameters['m'] = m
         self.parameters['r_s'] = r_s
-        self.parameters['cos_coeff'] = np.array(cos_coeff)
-        self.parameters['sin_coeff'] = np.array(sin_coeff)
+        self.parameters['Snlm'] = Snlm
+        self.parameters['Tnlm'] = Tnlm
         super(SCFPotential, self).__init__(units=units)
 
-        nmax = sin_coeff.shape[0]-1
-        lmax = sin_coeff.shape[1]-1
+        nmax = Tnlm.shape[0]-1
+        lmax = Tnlm.shape[1]-1
 
         # c_params = self.parameters.copy()
         # c_params['G'] = self.G
         # c_params.pop('sin_coeff')
         # c_params.pop('cos_coeff')
-        coeff = np.concatenate((cos_coeff.ravel(), sin_coeff.ravel()))
+        coeff = np.concatenate((Snlm.ravel(), Tnlm.ravel()))
         params1 = [self.G, self.parameters['m'], self.parameters['r_s'],
                    nmax, lmax]
         c_params = np.array(params1 + coeff.tolist())
