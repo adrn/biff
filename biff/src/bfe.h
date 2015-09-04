@@ -14,3 +14,4 @@ extern void c_gradient(double *xyz, int K,
 
 extern double scf_value(double t, double *pars, double *q);
 extern void scf_gradient(double t, double *pars, double *q, double *grad);
+extern double scf_density(double t, double *pars, double *q);

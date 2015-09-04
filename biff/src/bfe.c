@@ -198,3 +198,40 @@ void scf_gradient(double t, double *pars, double *q, double *grad) {
                &pars[5], &pars[5+num_coeff],
                nmax, lmax, &grad[0]);
 }
+
+double scf_density(double t, double *pars, double *q) {
+    /*  pars:
+        - G (Gravitational constant)
+        - m (mass scale)
+        - r_s (length scale)
+        - nmax
+        - lmax
+        [- sin_coeff, cos_coeff]
+    */
+    double G = pars[0];
+    double M = pars[1];
+    double r_s = pars[2];
+    int nmax = (int)pars[3];
+    int lmax = (int)pars[4];
+
+    double val[1] = {0.};
+    double _val;
+    int n,l,m;
+
+    int num_coeff = 0;
+    for (n=0; n<(nmax+1); n++) {
+        for (l=0; l<(lmax+1); l++) {
+            for (m=0; m<(lmax+1); m++) {
+                num_coeff++;
+            }
+        }
+    }
+
+    c_density(&q[0], 1,
+              M, r_s,
+              &pars[5], &pars[5+num_coeff],
+              nmax, lmax, &val[0]);
+
+    _val = val[0];
+    return _val;
+}
