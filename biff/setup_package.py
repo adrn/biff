@@ -12,12 +12,14 @@ def get_extensions():
     coeff_cfg['sources'].append('biff/computecoeff.pyx')
     coeff_cfg['sources'].append('biff/src/bfe_helper.c')
     coeff_cfg['libraries'] = ['gsl', 'gslcblas']
+    coeff_cfg['extra_compile_args'] = ['--std=gnu99']
 
     bfe_cfg = setup_helpers.DistutilsExtensionArgs()
     bfe_cfg['include_dirs'].append('numpy')
     bfe_cfg['include_dirs'].append('biff/src')
     bfe_cfg['sources'].append('biff/bfe.pyx')
     bfe_cfg['libraries'] = ['gsl', 'gslcblas']
+    bfe_cfg['extra_compile_args'] = ['--std=gnu99']
 
     return [Extension('biff._computecoeff', **coeff_cfg),
             Extension('biff._bfe', **bfe_cfg)]
