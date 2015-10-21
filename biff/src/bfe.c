@@ -17,6 +17,13 @@ void c_density(double *xyz, int K,
         s = r/r_s;
         X = xyz[j+2]/r; // cos(theta)
         phi = atan2(xyz[j+1], xyz[j+0]);
+
+        // precompute all cos(m phi), sin(m phi)
+        for (m=0; m<(lmax+1); m++) {
+            cosmphi[m] = cos(m*phi);
+            sinmphi[m] = sin(m*phi);
+        }
+
         for (n=0; n<(nmax+1); n++) {
             for (l=0; l<(lmax+1); l++) {
                 for (m=0; m<(lmax+1); m++) {
