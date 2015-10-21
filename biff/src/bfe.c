@@ -8,6 +8,9 @@ void c_density(double *xyz, int K,
 
     int i,j,k, n,l,m;
     double r, s, X, phi;
+    double cosmphi[lmax+1], sinmphi[lmax+1];
+    memset(cosmphi, 0, (lmax+1)*sizeof(double));
+    memset(sinmphi, 0, (lmax+1)*sizeof(double));
     for (k=0; k<K; k++) {
         j = 3*k;
         r = sqrt(xyz[j]*xyz[j] + xyz[j+1]*xyz[j+1] + xyz[j+2]*xyz[j+2]);
@@ -21,8 +24,8 @@ void c_density(double *xyz, int K,
                         continue;
 
                     i = m + (lmax+1) * (l + (lmax+1) * n);
-                    dens[k] += rho_nlm(s, phi, X, n, l, m) * (Snlm[i]*cos(m*phi) +
-                                                              Tnlm[i]*sin(m*phi));
+                    dens[k] += rho_nlm(s, phi, X, n, l, m) * (Snlm[i]*cosmphi[m] +
+                                                              Tnlm[i]*sinmphi[m]);
                 }
             }
         }
@@ -37,6 +40,9 @@ void c_potential(double *xyz, int K,
 
     int i,j,k, n,l,m;
     double r, s, X, phi;
+    double cosmphi[lmax+1], sinmphi[lmax+1];
+    memset(cosmphi, 0, (lmax+1)*sizeof(double));
+    memset(sinmphi, 0, (lmax+1)*sizeof(double));
     for (k=0; k<K; k++) {
         j = 3*k;
         r = sqrt(xyz[j]*xyz[j] + xyz[j+1]*xyz[j+1] + xyz[j+2]*xyz[j+2]);
@@ -47,8 +53,13 @@ void c_potential(double *xyz, int K,
         // HACK: zero out before filling;
         val[k] = 0.;
 
+        // precompute all cos(m phi), sin(m phi)
+        for (m=0; m<(lmax+1); m++) {
+            cosmphi[m] = cos(m*phi);
+            sinmphi[m] = sin(m*phi);
+        }
+
         // TODO: could speed this up by moving call to legendre out of n loop
-        // TODO: also precompute all cos(m phi), sin(m phi)
         // TODO: note, if I do this I need to go from 3D to 1D array in different way...
         i = 0;
         for (n=0; n<(nmax+1); n++) {
@@ -59,8 +70,8 @@ void c_potential(double *xyz, int K,
                         continue;
                     }
 
-                    val[k] += phi_nlm(s, phi, X, n, l, m) * (Snlm[i]*cos(m*phi) +
-                                                             Tnlm[i]*sin(m*phi));
+                    val[k] += phi_nlm(s, phi, X, n, l, m) * (Snlm[i]*cosmphi[m] +
+                                                             Tnlm[i]*sinmphi[m]);
                     i++;
                 }
             }
@@ -78,6 +89,9 @@ void c_gradient(double *xyz, int K,
     double r, s, X, phi;
     double sintheta, cosphi, sinphi, tmp;
     double tmp_grad[3];
+    double cosmphi[lmax+1], sinmphi[lmax+1];
+    memset(cosmphi, 0, (lmax+1)*sizeof(double));
+    memset(sinmphi, 0, (lmax+1)*sizeof(double));
 
     for (k=0; k<K; k++) {
         j = 3*k;
@@ -89,6 +103,12 @@ void c_gradient(double *xyz, int K,
         sintheta = sqrt(1 - X*X);
         cosphi = cos(phi);
         sinphi = sin(phi);
+
+        // precompute all cos(m phi), sin(m phi)
+        for (m=0; m<(lmax+1); m++) {
+            cosmphi[m] = cos(m*phi);
+            sinmphi[m] = sin(m*phi);
+        }
 
         // zero out -- hack!
         grad[j+0] = 0.;
@@ -104,12 +124,12 @@ void c_gradient(double *xyz, int K,
                         continue;
                     }
 
-                    tmp = (Snlm[i]*cos(m*phi) + Tnlm[i]*sin(m*phi));
+                    tmp = (Snlm[i]*cosmphi[m] + Tnlm[i]*sinmphi[m]);
 
                     sph_grad_phi_nlm(s, phi, X, n, l, m, &tmp_grad[0]);
                     grad[j+0] += tmp_grad[0] * tmp; // r
                     grad[j+1] += tmp_grad[1] * -tmp / s; // theta
-                    grad[j+2] += tmp_grad[2] * (Tnlm[i]*cos(m*phi) - Snlm[i]*sin(m*phi)) / (s*sintheta); // phi
+                    grad[j+2] += tmp_grad[2] * (Tnlm[i]*cosmphi[m] - Snlm[i]*sinmphi[m]) / (s*sintheta); // phi
 
                     i++;
                 }
