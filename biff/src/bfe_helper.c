@@ -22,15 +22,27 @@ double phi_nlm(double s, double phi, double X, int n, int l, int m) {
     return phi_nl(s, n, l) * gsl_sf_legendre_Plm(l, m, X);
 }
 
-void sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m, double *sphgrad) {
+void sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m,
+                      int lmax, double *Plm,
+                      double *sphgrad) {
     double dPhi_dr, dPhi_dphi, dPhi_dtheta;
 
     // spherical coord stuff
     double sintheta = sqrt(1-X*X);
 
-    double Phi_nl, Ylm;
+    double Phi_nl, Ylm, Yl1m;
     Phi_nl = phi_nl(s, n, l);
-    Ylm = gsl_sf_legendre_Plm(l, m, X);
+    if (isnan(Plm[(l-1)*(lmax+1)+m])) {
+        Yl1m = gsl_sf_legendre_Plm(l-1, m, X);
+    } else {
+        Yl1m = Plm[(l-1)*(lmax+1)+m];
+    }
+
+    if (isnan(Plm[l*(lmax+1)+m])) {
+        Ylm = gsl_sf_legendre_Plm(l, m, X);
+    } else {
+        Ylm = Plm[l*(lmax+1)+m];
+    }
 
     double ggn = gsl_sf_gegenpoly_n(n, 1.5 + 2*l, (-1 + s)/(1 + s));
 
@@ -52,7 +64,7 @@ void sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m, doubl
     } else if (l == m) {
         dPhi_dtheta = -l*X*Ylm / sintheta;
     } else {
-        dPhi_dtheta = -(l*X*Ylm - (l+m)*gsl_sf_legendre_Plm(l-1, m, X)) / sintheta;
+        dPhi_dtheta = -(l*X*Ylm - (l+m)*Yl1m) / sintheta;
     }
     dPhi_dtheta *= Phi_nl;
 
