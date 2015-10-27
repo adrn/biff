@@ -116,10 +116,11 @@ void c_gradient(double *xyz, int K,
         for (m=0; m<(lmax+1); m++) {
             cosmphi[m] = cos(m*phi);
             sinmphi[m] = sin(m*phi);
-        }
 
-        // set all NaNs
-        memset(Plm, NAN, (lmax+1)*(lmax+1)*sizeof(double));
+            for (n=0; n<(lmax+1); n++) {
+               Plm[m][n] = NAN;
+            }
+        }
 
         // zero out -- hack!
         grad[j+0] = 0.;
@@ -137,7 +138,7 @@ void c_gradient(double *xyz, int K,
 
                     tmp = (Snlm[i]*cosmphi[m] + Tnlm[i]*sinmphi[m]);
 
-                    sph_grad_phi_nlm(s, phi, X, n, l, m, lmax, &Plm[0], &tmp_grad[0]);
+                    sph_grad_phi_nlm(s, phi, X, n, l, m, lmax, &Plm[0][0], &tmp_grad[0]);
                     grad[j+0] += tmp_grad[0] * tmp; // r
                     grad[j+1] += tmp_grad[1] * -tmp / s; // theta
                     grad[j+2] += tmp_grad[2] * (Tnlm[i]*cosmphi[m] - Snlm[i]*sinmphi[m]) / (s*sintheta); // phi

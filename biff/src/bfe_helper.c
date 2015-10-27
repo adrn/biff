@@ -34,10 +34,9 @@ void sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m,
     Phi_nl = phi_nl(s, n, l);
 
     if (isnan(Plm[l*(lmax+1)+m])) {
-        Ylm = gsl_sf_legendre_Plm(l, m, X);
-    } else {
-        Ylm = Plm[l*(lmax+1)+m];
+        Plm[l*(lmax+1)+m] = gsl_sf_legendre_Plm(l, m, X);
     }
+    Ylm = Plm[l*(lmax+1)+m];
 
     double ggn = gsl_sf_gegenpoly_n(n, 1.5 + 2*l, (-1 + s)/(1 + s));
 
@@ -60,10 +59,9 @@ void sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m,
         dPhi_dtheta = -l*X*Ylm / sintheta;
     } else {
         if (isnan(Plm[(l-1)*(lmax+1)+m])) {
-            Yl1m = gsl_sf_legendre_Plm(l-1, m, X);
-        } else {
-            Yl1m = Plm[(l-1)*(lmax+1)+m];
+            Plm[(l-1)*(lmax+1)+m] = gsl_sf_legendre_Plm(l-1, m, X);
         }
+        Yl1m = Plm[(l-1)*(lmax+1)+m];
         dPhi_dtheta = -(l*X*Ylm - (l+m)*Yl1m) / sintheta;
     }
     dPhi_dtheta *= Phi_nl;
