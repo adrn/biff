@@ -27,7 +27,7 @@ def test_density(basename):
     coeff_path = os.path.abspath(get_pkg_data_filename('../data/{0}.coeff'.format(basename)))
     accp_path = os.path.abspath(get_pkg_data_filename('../data/{0}-accp.dat.gz'.format(basename)))
 
-    xyz = np.loadtxt(pos_path, skiprows=1)
+    xyz = np.ascontiguousarray(np.loadtxt(pos_path, skiprows=1).T)
     coeff = np.atleast_2d(np.loadtxt(coeff_path, skiprows=1))
 
     nmax = coeff[:,0].astype(int).max()
@@ -54,7 +54,7 @@ def test_potential(basename):
     coeff_path = os.path.abspath(get_pkg_data_filename('../data/{0}.coeff'.format(basename)))
     accp_path = os.path.abspath(get_pkg_data_filename('../data/{0}-accp.dat.gz'.format(basename)))
 
-    xyz = np.loadtxt(pos_path, skiprows=1)
+    xyz = np.ascontiguousarray(np.loadtxt(pos_path, skiprows=1).T)
     coeff = np.atleast_2d(np.loadtxt(coeff_path, skiprows=1))
     accp = np.loadtxt(accp_path)
 
@@ -84,7 +84,7 @@ def test_gradient(basename):
     coeff_path = os.path.abspath(get_pkg_data_filename('../data/{0}.coeff'.format(basename)))
     accp_path = os.path.abspath(get_pkg_data_filename('../data/{0}-accp.dat.gz'.format(basename)))
 
-    xyz = np.loadtxt(pos_path, skiprows=1)
+    xyz = np.ascontiguousarray(np.loadtxt(pos_path, skiprows=1).T)
     coeff = np.atleast_2d(np.loadtxt(coeff_path, skiprows=1))
     accp = np.loadtxt(accp_path)
 
@@ -100,7 +100,7 @@ def test_gradient(basename):
 
     grad = gradient(xyz, G=1., M=1., r_s=1.,
                     Snlm=cos_coeff, Tnlm=sin_coeff,
-                    nmax=nmax, lmax=lmax)
+                    nmax=nmax, lmax=lmax).T
 
     # I output the acceleration from SCF when I make the files
     #   so I have no idea why I don't need a minus sign here...

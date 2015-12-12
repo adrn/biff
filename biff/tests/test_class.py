@@ -31,10 +31,10 @@ def test_hernquist():
 
     nbins = 128
     rr = np.linspace(0.1,10.,nbins)
-    xyz = np.zeros((nbins,3))
-    xyz[:,0] = rr * np.cos(np.pi/4.) * np.sin(np.pi/4.)
-    xyz[:,1] = rr * np.sin(np.pi/4.) * np.sin(np.pi/4.)
-    xyz[:,2] = rr * np.cos(np.pi/4.)
+    xyz = np.zeros((3,nbins))
+    xyz[0] = rr * np.cos(np.pi/4.) * np.sin(np.pi/4.)
+    xyz[1] = rr * np.sin(np.pi/4.) * np.sin(np.pi/4.)
+    xyz[2] = rr * np.cos(np.pi/4.)
 
     hernquist = gp.HernquistPotential(m=M, c=r_s, units=galactic)
 

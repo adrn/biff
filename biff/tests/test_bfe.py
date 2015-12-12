@@ -15,13 +15,11 @@ from .._bfe import density, potential, gradient
 
 # Check that we get A000=1. for putting in hernquist density
 def hernquist_density(xyz, M, r_s):
-    xyz = np.atleast_2d(xyz)
-    r = np.sqrt(np.sum(xyz**2, axis=-1))
+    r = np.sqrt(np.sum(xyz**2, axis=0))
     return M/(2*np.pi) * r_s / (r * (r+r_s)**3)
 
 def hernquist_potential(xyz, M, r_s):
-    xyz = np.atleast_2d(xyz)
-    r = np.sqrt(np.sum(xyz**2, axis=-1))
+    r = np.sqrt(np.sum(xyz**2, axis=0))
     return -G*M / (r + r_s)
 
 def hernquist_gradient(xyz, M, r_s):
@@ -42,10 +40,10 @@ def test_hernquist():
 
     nbins = 128
     rr = np.linspace(0.1,10.,nbins)
-    xyz = np.zeros((nbins,3))
-    xyz[:,0] = rr * np.cos(np.pi/4.) * np.sin(np.pi/4.)
-    xyz[:,1] = rr * np.sin(np.pi/4.) * np.sin(np.pi/4.)
-    xyz[:,2] = rr * np.cos(np.pi/4.)
+    xyz = np.zeros((3,nbins))
+    xyz[0] = rr * np.cos(np.pi/4.) * np.sin(np.pi/4.)
+    xyz[1] = rr * np.sin(np.pi/4.) * np.sin(np.pi/4.)
+    xyz[2] = rr * np.cos(np.pi/4.)
 
     bfe_dens = density(xyz, Snlm, Tnlm, nmax, lmax, M=M, r_s=r_s)
     true_dens = hernquist_density(xyz, M, r_s)
