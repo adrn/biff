@@ -24,15 +24,20 @@ void c_density(double *xyz, int K,
             sinmphi[m] = sin(m*phi);
         }
 
+        // i = 0;
         for (n=0; n<(nmax+1); n++) {
             for (l=0; l<(lmax+1); l++) {
                 for (m=0; m<(lmax+1); m++) {
-                    if (m > l)
+                    if (m > l) {
+                        // i++;
                         continue;
+                    }
 
                     i = m + (lmax+1) * (l + (lmax+1) * n);
-                    if ((Snlm[i] == 0.) & (Tnlm[i] == 0.))
+                    if ((Snlm[i] == 0.) & (Tnlm[i] == 0.)) {
+                        // i++;
                         continue;
+                    }
                     dens[k] += rho_nlm(s, phi, X, n, l, m) * (Snlm[i]*cosmphi[m] +
                                                               Tnlm[i]*sinmphi[m]);
                 }
@@ -70,21 +75,24 @@ void c_potential(double *xyz, int K,
 
         // TODO: could speed this up by moving call to legendre out of n loop
         // TODO: note, if I do this I need to go from 3D to 1D array in different way...
-        i = 0;
+        // i = 0;
         for (n=0; n<(nmax+1); n++) {
             for (l=0; l<(lmax+1); l++) {
                 for (m=0; m<(lmax+1); m++) {
                     if (m > l) {
-                        i++;
+                        // i++;
                         continue;
                     }
 
-                    if ((Snlm[i] == 0.) & (Tnlm[i] == 0.))
+                    i = m + (lmax+1) * (l + (lmax+1) * n);
+                    if ((Snlm[i] == 0.) & (Tnlm[i] == 0.)) {
+                        // i++;
                         continue;
+                    }
 
                     val[k] += phi_nlm(s, phi, X, n, l, m) * (Snlm[i]*cosmphi[m] +
                                                              Tnlm[i]*sinmphi[m]);
-                    i++;
+                    // i++;
                 }
             }
         }
@@ -137,20 +145,23 @@ void c_gradient(double *xyz, int K,
             for (l=0; l<(lmax+1); l++) {
                 for (m=0; m<(lmax+1); m++) {
                     if (m > l) {
-                        i++;
+                        // i++;
                         continue;
                     }
 
+                    i = m + (lmax+1) * (l + (lmax+1) * n);
                     tmp = (Snlm[i]*cosmphi[m] + Tnlm[i]*sinmphi[m]);
-                    if ((Snlm[i] == 0.) & (Tnlm[i] == 0.))
+                    if ((Snlm[i] == 0.) & (Tnlm[i] == 0.)) {
+                        i++;
                         continue;
+                    }
 
                     sph_grad_phi_nlm(s, phi, X, n, l, m, lmax, &Plm[0][0], &tmp_grad[0]);
                     grad[j+0] += tmp_grad[0] * tmp; // r
                     grad[j+1] += tmp_grad[1] * -tmp / s; // theta
                     grad[j+2] += tmp_grad[2] * (Tnlm[i]*cosmphi[m] - Snlm[i]*sinmphi[m]) / (s*sintheta); // phi
 
-                    i++;
+                    // i++;
                 }
             }
         }
