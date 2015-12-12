@@ -59,8 +59,8 @@ cpdef density(double[:,::1] xyz,
     Parameters
     ----------
     xyz : `~numpy.ndarray`
-        A 2D array of positions where ``axis=0`` are the different
-        points and ``axis=1`` are the coordinate dimensions x, y, z.
+        A 2D array of positions where ``axis=0`` are the coordinate
+        dimensions (x, y, z) and ``axis=1`` are the different points.
     Snlm : `~numpy.ndarray`
         A 3D array of expansion coefficients for the cosine terms
         of the expansion. This notation follows Lowing et al. (2011).
@@ -96,10 +96,13 @@ cpdef density(double[:,::1] xyz,
     """
 
     cdef:
-        int ncoords = xyz.shape[0]
+        int ncoords = xyz.shape[1]
         double[::1] dens = np.zeros(ncoords)
 
-    c_density(&xyz[0,0], ncoords, M, r_s,
+        # input will be (3,n) but we need to pass (n,3) to C
+        double[:,::1] new_xyz = np.ascontiguousarray(xyz.T)
+
+    c_density(&new_xyz[0,0], ncoords, M, r_s,
               &Snlm[0,0,0], &Tnlm[0,0,0],
               nmax, lmax, &dens[0])
 
@@ -118,8 +121,8 @@ cpdef potential(double[:,::1] xyz,
     Parameters
     ----------
     xyz : `~numpy.ndarray`
-        A 2D array of positions where ``axis=0`` are the different
-        points and ``axis=1`` are the coordinate dimensions x, y, z.
+        A 2D array of positions where ``axis=0`` are the coordinate
+        dimensions (x, y, z) and ``axis=1`` are the different points.
     Snlm : `~numpy.ndarray`
         A 3D array of expansion coefficients for the cosine terms
         of the expansion. This notation follows Lowing et al. (2011).
@@ -156,10 +159,13 @@ cpdef potential(double[:,::1] xyz,
 
     """
     cdef:
-        int ncoords = xyz.shape[0]
+        int ncoords = xyz.shape[1]
         double[::1] potv = np.zeros(ncoords)
 
-    c_potential(&xyz[0,0], ncoords, G, M, r_s,
+        # input will be (3,n) but we need to pass (n,3) to C
+        double[:,::1] new_xyz = np.ascontiguousarray(xyz.T)
+
+    c_potential(&new_xyz[0,0], ncoords, G, M, r_s,
                 &Snlm[0,0,0], &Tnlm[0,0,0],
                 nmax, lmax, &potv[0])
 
@@ -179,8 +185,8 @@ cpdef gradient(double[:,::1] xyz,
     Parameters
     ----------
     xyz : `~numpy.ndarray`
-        A 2D array of positions where ``axis=0`` are the different
-        points and ``axis=1`` are the coordinate dimensions x, y, z.
+        A 2D array of positions where ``axis=0`` are the coordinate
+        dimensions (x, y, z) and ``axis=1`` are the different points.
     Snlm : `~numpy.ndarray`
         A 3D array of expansion coefficients for the cosine terms
         of the expansion. This notation follows Lowing et al. (2011).
@@ -217,14 +223,17 @@ cpdef gradient(double[:,::1] xyz,
 
     """
     cdef:
-        int ncoords = xyz.shape[0]
+        int ncoords = xyz.shape[1]
         double[:,::1] grad = np.zeros((ncoords,3))
 
-    c_gradient(&xyz[0,0], ncoords, G, M, r_s,
+        # input will be (3,n) but we need to pass (n,3) to C
+        double[:,::1] new_xyz = np.ascontiguousarray(xyz.T)
+
+    c_gradient(&new_xyz[0,0], ncoords, G, M, r_s,
                &Snlm[0,0,0], &Tnlm[0,0,0],
                nmax, lmax, &grad[0,0])
 
-    return np.array(grad)
+    return np.array(grad.T)
 
 # ------------------------------------------------------
 
@@ -244,7 +253,7 @@ cdef class _SCFPotential(_CPotential):
 
 class SCFPotential(CPotentialBase):
     r"""
-    SCFPotential(M, r_s, Snlm, Tnlm, units)
+    SCFPotential(m, r_s, Snlm, Tnlm, units)
 
     An SCF / basis function expansion potential. Follows the
     convention used in Hernquist & Ostriker (1992) and
