@@ -31,6 +31,8 @@ void c_density(double *xyz, int K,
                         continue;
 
                     i = m + (lmax+1) * (l + (lmax+1) * n);
+                    if ((Snlm[i] == 0.) & (Tnlm[i] == 0.))
+                        continue;
                     dens[k] += rho_nlm(s, phi, X, n, l, m) * (Snlm[i]*cosmphi[m] +
                                                               Tnlm[i]*sinmphi[m]);
                 }
@@ -76,6 +78,9 @@ void c_potential(double *xyz, int K,
                         i++;
                         continue;
                     }
+
+                    if ((Snlm[i] == 0.) & (Tnlm[i] == 0.))
+                        continue;
 
                     val[k] += phi_nlm(s, phi, X, n, l, m) * (Snlm[i]*cosmphi[m] +
                                                              Tnlm[i]*sinmphi[m]);
@@ -137,6 +142,8 @@ void c_gradient(double *xyz, int K,
                     }
 
                     tmp = (Snlm[i]*cosmphi[m] + Tnlm[i]*sinmphi[m]);
+                    if ((Snlm[i] == 0.) & (Tnlm[i] == 0.))
+                        continue;
 
                     sph_grad_phi_nlm(s, phi, X, n, l, m, lmax, &Plm[0][0], &tmp_grad[0]);
                     grad[j+0] += tmp_grad[0] * tmp; // r
