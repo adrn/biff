@@ -18,6 +18,7 @@ from libc.math cimport M_PI
 from gary.units import galactic
 from gary.potential.cpotential cimport _CPotential
 from gary.potential.cpotential import CPotentialBase
+from gary.potential.cpotential cimport valuefunc, gradientfunc
 
 cdef extern from "math.h":
     double sqrt(double x) nogil
@@ -248,8 +249,8 @@ cdef class _SCFPotential(_CPotential):
                                        # sin_coeff.ravel(),
                                        # cos_coeff.ravel()])
         self._parameters = &(self._parvec[0])
-        self.c_value = &scf_value
-        self.c_gradient = &scf_gradient
+        self.c_value = <valuefunc>&scf_value
+        self.c_gradient = <gradientfunc>&scf_gradient
 
 class SCFPotential(CPotentialBase):
     r"""
