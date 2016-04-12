@@ -9,6 +9,8 @@ from __future__ import division, print_function
 
 __author__ = "adrn <adrn@astro.columbia.edu>"
 
+from collections import OrderedDict
+
 from astropy.constants import G
 import numpy as np
 cimport numpy as np
@@ -16,9 +18,8 @@ from libc.math cimport M_PI
 
 # Gary
 from gary.units import galactic
-from gary.potential.cpotential cimport _CPotential
+from gary.potential.cpotential cimport CPotentialWrapper
 from gary.potential.cpotential import CPotentialBase
-from gary.potential.cpotential cimport valuefunc, gradientfunc
 
 cdef extern from "math.h":
     double sqrt(double x) nogil
@@ -26,23 +27,41 @@ cdef extern from "math.h":
     double cos(double x) nogil
     double sin(double x) nogil
 
+cdef extern from "src/cpotential.h":
+    enum:
+        MAX_N_COMPONENTS = 16
+
+    ctypedef double (*densityfunc)(double t, double *pars, double *q) nogil
+    ctypedef double (*valuefunc)(double t, double *pars, double *q) nogil
+    ctypedef void (*gradientfunc)(double t, double *pars, double *q, double *grad) nogil
+
+    ctypedef struct CPotential:
+        int n_components
+        int n_dim
+        densityfunc density[MAX_N_COMPONENTS]
+        valuefunc value[MAX_N_COMPONENTS]
+        gradientfunc gradient[MAX_N_COMPONENTS]
+        int n_params[MAX_N_COMPONENTS]
+        double *parameters[MAX_N_COMPONENTS]
+
 cdef extern from "src/bfe_helper.c":
     double rho_nlm(double s, double phi, double X, int n, int l, int m) nogil
     double phi_nlm(double s, double phi, double X, int n, int l, int m) nogil
     double sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m, double *grad) nogil
 
 cdef extern from "src/bfe.c":
-    void c_density(double *xyz, int K, double M, double r_s,
-                   double *Snlm, double *Tnlm,
-                   int nmax, int lmax, double *dens) nogil
-    void c_potential(double *xyz, int K, double G, double M, double r_s,
-                     double *Snlm, double *Tnlm,
-                     int nmax, int lmax, double *potv) nogil
-    void c_gradient(double *xyz, int K, double G, double M, double r_s,
-                    double *Snlm, double *Tnlm,
-                    int nmax, int lmax, double *grad) nogil
+    void scf_density_helper(double *xyz, int K, double M, double r_s,
+                            double *Snlm, double *Tnlm,
+                            int nmax, int lmax, double *dens) nogil
+    void scf_potential_helper(double *xyz, int K, double G, double M, double r_s,
+                              double *Snlm, double *Tnlm,
+                              int nmax, int lmax, double *potv) nogil
+    void scf_gradient_helper(double *xyz, int K, double G, double M, double r_s,
+                             double *Snlm, double *Tnlm,
+                             int nmax, int lmax, double *grad) nogil
 
     double scf_value(double t, double *pars, double *q) nogil
+    double scf_density(double t, double *pars, double *q) nogil
     void scf_gradient(double t, double *pars, double *q, double *grad) nogil
 
 __all__ = ['density', 'potential', 'gradient', 'SCFPotential']
@@ -103,9 +122,9 @@ cpdef density(double[:,::1] xyz,
         # input will be (3,n) but we need to pass (n,3) to C
         double[:,::1] new_xyz = np.ascontiguousarray(xyz.T)
 
-    c_density(&new_xyz[0,0], ncoords, M, r_s,
-              &Snlm[0,0,0], &Tnlm[0,0,0],
-              nmax, lmax, &dens[0])
+    scf_density_helper(&new_xyz[0,0], ncoords, M, r_s,
+                       &Snlm[0,0,0], &Tnlm[0,0,0],
+                       nmax, lmax, &dens[0])
 
     return np.array(dens)
 
@@ -166,9 +185,9 @@ cpdef potential(double[:,::1] xyz,
         # input will be (3,n) but we need to pass (n,3) to C
         double[:,::1] new_xyz = np.ascontiguousarray(xyz.T)
 
-    c_potential(&new_xyz[0,0], ncoords, G, M, r_s,
-                &Snlm[0,0,0], &Tnlm[0,0,0],
-                nmax, lmax, &potv[0])
+    scf_potential_helper(&new_xyz[0,0], ncoords, G, M, r_s,
+                         &Snlm[0,0,0], &Tnlm[0,0,0],
+                         nmax, lmax, &potv[0])
 
     return np.array(potv)
 
@@ -230,27 +249,32 @@ cpdef gradient(double[:,::1] xyz,
         # input will be (3,n) but we need to pass (n,3) to C
         double[:,::1] new_xyz = np.ascontiguousarray(xyz.T)
 
-    c_gradient(&new_xyz[0,0], ncoords, G, M, r_s,
-               &Snlm[0,0,0], &Tnlm[0,0,0],
-               nmax, lmax, &grad[0,0])
+    scf_gradient_helper(&new_xyz[0,0], ncoords, G, M, r_s,
+                        &Snlm[0,0,0], &Tnlm[0,0,0],
+                        nmax, lmax, &grad[0,0])
 
     return np.array(grad.T)
 
 # ------------------------------------------------------
 
-cdef class _SCFPotential(_CPotential):
-    # double[:,:,::1] sin_coeff, double[:,:,::1] cos_coeff):
-    # np.ndarray[np.float64_t, ndim=3] sin_coeff,
-    # np.ndarray[np.float64_t, ndim=3] cos_coeff):
-    def __cinit__(self, double G, double m, double r_s,
-                  int nmax, int lmax,
-                  *args):
-        self._parvec = np.concatenate([[G,m,r_s,nmax,lmax],args])
-                                       # sin_coeff.ravel(),
-                                       # cos_coeff.ravel()])
-        self._parameters = &(self._parvec[0])
-        self.c_value = <valuefunc>&scf_value
-        self.c_gradient = <gradientfunc>&scf_gradient
+cdef class SCFWrapper(CPotentialWrapper):
+
+    def __init__(self, G, parameters):
+        cdef CPotential cp
+
+        # This is the only code that needs to change per-potential
+        cp.value[0] = <valuefunc>(scf_value)
+        cp.density[0] = <densityfunc>(scf_density)
+        cp.gradient[0] = <gradientfunc>(scf_gradient)
+        # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+        cp.n_components = 1
+        self._params = np.array([G] + list(parameters), dtype=np.float64)
+        self._n_params = np.array([len(self._params)], dtype=np.int32)
+        cp.n_params = &(self._n_params[0])
+        cp.parameters[0] = &(self._params[0])
+        cp.n_dim = 3
+        self.cpotential = cp
 
 class SCFPotential(CPotentialBase):
     r"""
@@ -285,24 +309,22 @@ class SCFPotential(CPotentialBase):
     def __init__(self, m, r_s, Snlm, Tnlm, units=galactic):
         Snlm = np.array(Snlm)
         Tnlm = np.array(Tnlm)
-        self.G = G.decompose(units).value
-        self.parameters = dict()
-        self.parameters['m'] = m
-        self.parameters['r_s'] = r_s
-        self.parameters['Snlm'] = Snlm
-        self.parameters['Tnlm'] = Tnlm
-        super(SCFPotential, self).__init__(units=units)
 
+        parameters = OrderedDict()
+        parameters['m'] = m
+        parameters['r_s'] = r_s
+        parameters['Snlm'] = Snlm
+        parameters['Tnlm'] = Tnlm
+        super(CPotentialBase, self).__init__(parameters, units=units)
+
+        # specialized
         nmax = Tnlm.shape[0]-1
         lmax = Tnlm.shape[1]-1
-
-        # c_params = self.parameters.copy()
-        # c_params['G'] = self.G
-        # c_params.pop('sin_coeff')
-        # c_params.pop('cos_coeff')
         coeff = np.concatenate((Snlm.ravel(), Tnlm.ravel()))
-        params1 = [self.G, self.parameters['m'], self.parameters['r_s'],
-                   nmax, lmax]
-        c_params = np.array(params1 + coeff.tolist())
-        # self.c_instance = _SCFPotential(*coeff, **c_params)
-        self.c_instance = _SCFPotential(*c_params)
+
+        c_params = []
+        for k,v in self.parameters.items():
+            c_params.append(self.parameters[k].value)
+        c_params = c_params + coeff.tolist()
+        self.c_parameters = np.array(c_params)
+        self.c_instance = SCFWrapper(self.G, self.c_parameters)

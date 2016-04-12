@@ -1,10 +1,10 @@
 #include <math.h>
 #include "bfe_helper.h"
 
-void c_density(double *xyz, int K,
-               double M, double r_s,
-               double *Snlm, double *Tnlm,
-               int nmax, int lmax, double *dens) {
+void scf_density_helper(double *xyz, int K,
+                        double M, double r_s,
+                        double *Snlm, double *Tnlm,
+                        int nmax, int lmax, double *dens) {
 
     int i,j,k, n,l,m;
     double r, s, X, phi;
@@ -47,10 +47,10 @@ void c_density(double *xyz, int K,
     }
 }
 
-void c_potential(double *xyz, int K,
-                 double G, double M, double r_s,
-                 double *Snlm, double *Tnlm,
-                 int nmax, int lmax, double *val) {
+void scf_potential_helper(double *xyz, int K,
+                          double G, double M, double r_s,
+                          double *Snlm, double *Tnlm,
+                          int nmax, int lmax, double *val) {
 
     int i,j,k, n,l,m;
     double r, s, X, phi;
@@ -100,10 +100,10 @@ void c_potential(double *xyz, int K,
     }
 }
 
-void c_gradient(double *xyz, int K,
-                double G, double M, double r_s,
-                double *Snlm, double *Tnlm,
-                int nmax, int lmax, double *grad) {
+void scf_gradient_helper(double *xyz, int K,
+                         double G, double M, double r_s,
+                         double *Snlm, double *Tnlm,
+                         int nmax, int lmax, double *grad) {
 
     int i,j,k, n,l,m;
     double r, s, X, phi;
@@ -208,10 +208,10 @@ double scf_value(double t, double *pars, double *q) {
         }
     }
 
-    c_potential(&q[0], 1,
-                G, M, r_s,
-                &pars[5], &pars[5+num_coeff],
-                nmax, lmax, &val[0]);
+    scf_potential_helper(&q[0], 1,
+                         G, M, r_s,
+                         &pars[5], &pars[5+num_coeff],
+                         nmax, lmax, &val[0]);
 
     _val = val[0];
     return _val;
@@ -243,10 +243,10 @@ void scf_gradient(double t, double *pars, double *q, double *grad) {
         }
     }
 
-    c_gradient(&q[0], 1,
-               G, M, r_s,
-               &pars[5], &pars[5+num_coeff],
-               nmax, lmax, &grad[0]);
+    scf_gradient_helper(&q[0], 1,
+                        G, M, r_s,
+                        &pars[5], &pars[5+num_coeff],
+                        nmax, lmax, &grad[0]);
 }
 
 double scf_density(double t, double *pars, double *q) {
@@ -277,10 +277,10 @@ double scf_density(double t, double *pars, double *q) {
         }
     }
 
-    c_density(&q[0], 1,
-              M, r_s,
-              &pars[5], &pars[5+num_coeff],
-              nmax, lmax, &val[0]);
+    scf_density_helper(&q[0], 1,
+                       M, r_s,
+                       &pars[5], &pars[5+num_coeff],
+                       nmax, lmax, &val[0]);
 
     _val = val[0];
     return _val;
