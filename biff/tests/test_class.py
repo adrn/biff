@@ -38,10 +38,10 @@ def test_hernquist():
 
     hernquist = gp.HernquistPotential(m=M, c=r_s, units=galactic)
 
-    bfe_pot = scf_potential.value(xyz)
-    true_pot = hernquist.value(xyz)
+    bfe_pot = scf_potential.value(xyz).value
+    true_pot = hernquist.value(xyz).value
     np.testing.assert_allclose(bfe_pot, true_pot)
 
-    bfe_grad = scf_potential.gradient(xyz)
-    true_grad = hernquist.gradient(xyz)
+    bfe_grad = scf_potential.gradient(xyz).value
+    true_grad = hernquist.gradient(xyz).value
     np.testing.assert_allclose(bfe_grad, true_grad)

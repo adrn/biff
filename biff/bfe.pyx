@@ -323,8 +323,10 @@ class SCFPotential(CPotentialBase):
         coeff = np.concatenate((Snlm.ravel(), Tnlm.ravel()))
 
         c_params = []
-        for k,v in self.parameters.items():
-            c_params.append(self.parameters[k].value)
+        c_params.append(self.parameters['m'].value)
+        c_params.append(self.parameters['r_s'].value)
+        c_params.append(nmax)
+        c_params.append(lmax)
         c_params = c_params + coeff.tolist()
         self.c_parameters = np.array(c_params)
-        self.c_instance = SCFWrapper(self.G, self.c_parameters)
+        self.c_instance = SCFWrapper(self.G, list(self.c_parameters))

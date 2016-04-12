@@ -25,7 +25,7 @@ def hernquist_potential(xyz, M, r_s):
 def hernquist_gradient(xyz, M, r_s):
     import gary.potential as gp
     p = gp.HernquistPotential(m=M, c=r_s, units=[u.kpc,u.Myr,u.Msun,u.radian])
-    return p.gradient(xyz)
+    return p.gradient(xyz).value
 
 def test_hernquist():
     nmax = 6
