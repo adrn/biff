@@ -9,17 +9,17 @@ double rho_nl(double s, int n, int l) {
     double RR, Knl;
     Knl = 0.5*n*(n+4*l+3) + (l+1)*(2*l+1);
     RR = Knl/(2*M_PI) * pow(s,l) / (s*pow(1+s,2*l+3)) * gsl_sf_gegenpoly_n(n, 2*l + 1.5, (s-1)/(s+1));
-    return RR;
+    return SQRT_FOURPI*RR;
 }
 double rho_nlm(double s, double phi, double X, int n, int l, int m) {
-    return rho_nl(s, n, l) * gsl_sf_legendre_Plm(l, m, X);
+    return rho_nl(s, n, l) * gsl_sf_legendre_sphPlm(l, m, X);
 }
 
 double phi_nl(double s, int n, int l) {
-    return -pow(s,l) * pow(1+s, -2*l-1) * gsl_sf_gegenpoly_n(n, 2*l+1.5, (s-1)/(s+1));
+    return -SQRT_FOURPI * pow(s,l) * pow(1+s, -2*l-1) * gsl_sf_gegenpoly_n(n, 2*l+1.5, (s-1)/(s+1));
 }
 double phi_nlm(double s, double phi, double X, int n, int l, int m) {
-    return phi_nl(s, n, l) * gsl_sf_legendre_Plm(l, m, X);
+    return phi_nl(s, n, l) * gsl_sf_legendre_sphPlm(l, m, X);
 }
 
 void sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m,
@@ -34,7 +34,7 @@ void sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m,
     Phi_nl = phi_nl(s, n, l);
 
     if (isnan(Plm[l*(lmax+1)+m])) {
-        Plm[l*(lmax+1)+m] = gsl_sf_legendre_Plm(l, m, X);
+        Plm[l*(lmax+1)+m] = gsl_sf_legendre_sphPlm(l, m, X);
     }
     Ylm = Plm[l*(lmax+1)+m];
 
@@ -59,7 +59,7 @@ void sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m,
         dPhi_dtheta = -l*X*Ylm / sintheta;
     } else {
         if (isnan(Plm[(l-1)*(lmax+1)+m])) {
-            Plm[(l-1)*(lmax+1)+m] = gsl_sf_legendre_Plm(l-1, m, X);
+            Plm[(l-1)*(lmax+1)+m] = gsl_sf_legendre_sphPlm(l-1, m, X);
         }
         Yl1m = Plm[(l-1)*(lmax+1)+m];
         dPhi_dtheta = -(l*X*Ylm - (l+m)*Yl1m) / sintheta;
