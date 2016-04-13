@@ -51,7 +51,7 @@ void sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m,
              pow(s, l + 1)*(2*l + 1)*(s + 1)*ggn -
              2*pow(s, l + 1)*(4*l + 3.0)*gsl_sf_gegenpoly_n(n-1, 2.5 + 2*l, (-1 + s)/(1 + s)))/s;
     }
-    dPhi_dr *= Ylm;
+    dPhi_dr *= SQRT_FOURPI*Ylm;
 
     if (l==0) {
         dPhi_dtheta = 0.;
