@@ -11,7 +11,7 @@
 double cc_phi_nlm(double s, double phi, double X, int n, int l, int m) {
     /* Complex conjugate of phi_nlm */
     double tmp = pow(-1.,m) * gsl_sf_fact(l-m) / gsl_sf_fact(l+m);
-    return phi_nl(s, n, l) * tmp * gsl_sf_legendre_sphPlm(l, m, X);
+    return phi_nl(s, n, l) * tmp * gsl_sf_legendre_Plm(l, m, X) / SQRT_FOURPI;
 }
 
 double STnlm_integrand_help(double phi, double X, double xsi,

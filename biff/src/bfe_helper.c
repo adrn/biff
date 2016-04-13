@@ -12,14 +12,14 @@ double rho_nl(double s, int n, int l) {
     return SQRT_FOURPI*RR;
 }
 double rho_nlm(double s, double phi, double X, int n, int l, int m) {
-    return rho_nl(s, n, l) * gsl_sf_legendre_sphPlm(l, m, X);
+    return rho_nl(s, n, l) * gsl_sf_legendre_Plm(l, m, X) / SQRT_FOURPI;
 }
 
 double phi_nl(double s, int n, int l) {
-    return -SQRT_FOURPI * pow(s,l) * pow(1+s, -2*l-1) * gsl_sf_gegenpoly_n(n, 2*l+1.5, (s-1)/(s+1));
+    return -SQRT_FOURPI*pow(s,l) * pow(1+s, -2*l-1) * gsl_sf_gegenpoly_n(n, 2*l+1.5, (s-1)/(s+1));
 }
 double phi_nlm(double s, double phi, double X, int n, int l, int m) {
-    return phi_nl(s, n, l) * gsl_sf_legendre_sphPlm(l, m, X);
+    return phi_nl(s, n, l) * gsl_sf_legendre_Plm(l, m, X) / SQRT_FOURPI;
 }
 
 void sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m,
@@ -34,7 +34,7 @@ void sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m,
     Phi_nl = phi_nl(s, n, l);
 
     if (isnan(Plm[l*(lmax+1)+m])) {
-        Plm[l*(lmax+1)+m] = gsl_sf_legendre_sphPlm(l, m, X);
+        Plm[l*(lmax+1)+m] = gsl_sf_legendre_Plm(l, m, X);
     }
     Ylm = Plm[l*(lmax+1)+m];
 
@@ -51,7 +51,7 @@ void sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m,
              pow(s, l + 1)*(2*l + 1)*(s + 1)*ggn -
              2*pow(s, l + 1)*(4*l + 3.0)*gsl_sf_gegenpoly_n(n-1, 2.5 + 2*l, (-1 + s)/(1 + s)))/s;
     }
-    dPhi_dr *= SQRT_FOURPI*Ylm;
+    dPhi_dr *= Ylm;
 
     if (l==0) {
         dPhi_dtheta = 0.;
@@ -59,19 +59,19 @@ void sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m,
         dPhi_dtheta = -l*X*Ylm / sintheta;
     } else {
         if (isnan(Plm[(l-1)*(lmax+1)+m])) {
-            Plm[(l-1)*(lmax+1)+m] = gsl_sf_legendre_sphPlm(l-1, m, X);
+            Plm[(l-1)*(lmax+1)+m] = gsl_sf_legendre_Plm(l-1, m, X);
         }
         Yl1m = Plm[(l-1)*(lmax+1)+m];
         dPhi_dtheta = -(l*X*Ylm - (l+m)*Yl1m) / sintheta;
     }
-    dPhi_dtheta *= Phi_nl;
+    dPhi_dtheta *= Phi_nl / SQRT_FOURPI;
 
     if (m == 0) {
         dPhi_dphi = 0.;
     } else {
         dPhi_dphi = m;
     }
-    dPhi_dphi *= Ylm * Phi_nl;
+    dPhi_dphi *= Ylm * Phi_nl / SQRT_FOURPI;
 
     sphgrad[0] = dPhi_dr;
     sphgrad[1] = dPhi_dtheta;
