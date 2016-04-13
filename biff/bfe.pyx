@@ -44,12 +44,12 @@ cdef extern from "src/cpotential.h":
         int n_params[MAX_N_COMPONENTS]
         double *parameters[MAX_N_COMPONENTS]
 
-cdef extern from "src/bfe_helper.c":
+cdef extern from "src/bfe_helper.h":
     double rho_nlm(double s, double phi, double X, int n, int l, int m) nogil
     double phi_nlm(double s, double phi, double X, int n, int l, int m) nogil
     double sph_grad_phi_nlm(double s, double phi, double X, int n, int l, int m, double *grad) nogil
 
-cdef extern from "src/bfe.c":
+cdef extern from "src/bfe.h":
     void scf_density_helper(double *xyz, int K, double M, double r_s,
                             double *Snlm, double *Tnlm,
                             int nmax, int lmax, double *dens) nogil
@@ -79,8 +79,8 @@ cpdef density(double[:,::1] xyz,
     Parameters
     ----------
     xyz : `~numpy.ndarray`
-        A 2D array of positions where ``axis=0`` are the coordinate
-        dimensions (x, y, z) and ``axis=1`` are the different points.
+        A 2D array of positions where ``axis=0`` are multiple positions
+        and ``axis=1`` are the coordinate dimensions (x, y, z).
     Snlm : `~numpy.ndarray`
         A 3D array of expansion coefficients for the cosine terms
         of the expansion. This notation follows Lowing et al. (2011).
@@ -116,13 +116,10 @@ cpdef density(double[:,::1] xyz,
     """
 
     cdef:
-        int ncoords = xyz.shape[1]
+        int ncoords = xyz.shape[0]
         double[::1] dens = np.zeros(ncoords)
 
-        # input will be (3,n) but we need to pass (n,3) to C
-        double[:,::1] new_xyz = np.ascontiguousarray(xyz.T)
-
-    scf_density_helper(&new_xyz[0,0], ncoords, M, r_s,
+    scf_density_helper(&xyz[0,0], ncoords, M, r_s,
                        &Snlm[0,0,0], &Tnlm[0,0,0],
                        nmax, lmax, &dens[0])
 
@@ -141,8 +138,8 @@ cpdef potential(double[:,::1] xyz,
     Parameters
     ----------
     xyz : `~numpy.ndarray`
-        A 2D array of positions where ``axis=0`` are the coordinate
-        dimensions (x, y, z) and ``axis=1`` are the different points.
+        A 2D array of positions where ``axis=0`` are multiple positions
+        and ``axis=1`` are the coordinate dimensions (x, y, z).
     Snlm : `~numpy.ndarray`
         A 3D array of expansion coefficients for the cosine terms
         of the expansion. This notation follows Lowing et al. (2011).
@@ -179,13 +176,10 @@ cpdef potential(double[:,::1] xyz,
 
     """
     cdef:
-        int ncoords = xyz.shape[1]
+        int ncoords = xyz.shape[0]
         double[::1] potv = np.zeros(ncoords)
 
-        # input will be (3,n) but we need to pass (n,3) to C
-        double[:,::1] new_xyz = np.ascontiguousarray(xyz.T)
-
-    scf_potential_helper(&new_xyz[0,0], ncoords, G, M, r_s,
+    scf_potential_helper(&xyz[0,0], ncoords, G, M, r_s,
                          &Snlm[0,0,0], &Tnlm[0,0,0],
                          nmax, lmax, &potv[0])
 
@@ -205,8 +199,8 @@ cpdef gradient(double[:,::1] xyz,
     Parameters
     ----------
     xyz : `~numpy.ndarray`
-        A 2D array of positions where ``axis=0`` are the coordinate
-        dimensions (x, y, z) and ``axis=1`` are the different points.
+        A 2D array of positions where ``axis=0`` are multiple positions
+        and ``axis=1`` are the coordinate dimensions (x, y, z).
     Snlm : `~numpy.ndarray`
         A 3D array of expansion coefficients for the cosine terms
         of the expansion. This notation follows Lowing et al. (2011).
@@ -243,17 +237,14 @@ cpdef gradient(double[:,::1] xyz,
 
     """
     cdef:
-        int ncoords = xyz.shape[1]
+        int ncoords = xyz.shape[0]
         double[:,::1] grad = np.zeros((ncoords,3))
 
-        # input will be (3,n) but we need to pass (n,3) to C
-        double[:,::1] new_xyz = np.ascontiguousarray(xyz.T)
-
-    scf_gradient_helper(&new_xyz[0,0], ncoords, G, M, r_s,
+    scf_gradient_helper(&xyz[0,0], ncoords, G, M, r_s,
                         &Snlm[0,0,0], &Tnlm[0,0,0],
                         nmax, lmax, &grad[0,0])
 
-    return np.array(grad.T)
+    return np.array(grad)
 
 # ------------------------------------------------------
 

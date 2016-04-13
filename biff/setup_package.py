@@ -17,6 +17,7 @@ def get_extensions():
     coeff_cfg['include_dirs'].append('biff/src')
     coeff_cfg['sources'].append('biff/computecoeff.pyx')
     coeff_cfg['sources'].append('biff/src/bfe_helper.c')
+    # coeff_cfg['sources'].append('biff/src/coeff_helper.c')
     coeff_cfg['libraries'] = ['gsl', 'gslcblas']
     coeff_cfg['extra_compile_args'] = ['--std=gnu99']
 
@@ -25,6 +26,8 @@ def get_extensions():
     bfe_cfg['include_dirs'].append(gary_path)
     bfe_cfg['include_dirs'].append('biff/src')
     bfe_cfg['sources'].append('biff/bfe.pyx')
+    bfe_cfg['sources'].append('biff/src/bfe.c')
+    bfe_cfg['sources'].append('biff/src/bfe_helper.c')
     bfe_cfg['sources'].append(os.path.join(gary_path, 'src', 'cpotential.c'))
     bfe_cfg['libraries'] = ['gsl', 'gslcblas']
     bfe_cfg['extra_compile_args'] = ['--std=gnu99']
