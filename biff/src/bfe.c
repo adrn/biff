@@ -108,7 +108,7 @@ void scf_gradient_helper(double *xyz, int K,
     int i,j,k, n,l,m;
     double r, s, X, phi;
     double sintheta, cosphi, sinphi, tmp;
-    double tmp_grad[3];
+    double tmp_grad[3], tmp_grad2[3*K]; // TODO: this might be really inefficient
     double cosmphi[lmax+1], sinmphi[lmax+1];
     memset(cosmphi, 0, (lmax+1)*sizeof(double));
     memset(sinmphi, 0, (lmax+1)*sizeof(double));
@@ -135,10 +135,10 @@ void scf_gradient_helper(double *xyz, int K,
             }
         }
 
-        // zero out -- hack!
-        grad[j+0] = 0.;
-        grad[j+1] = 0.;
-        grad[j+2] = 0.;
+        // zero out
+        tmp_grad2[j+0] = 0.;
+        tmp_grad2[j+1] = 0.;
+        tmp_grad2[j+2] = 0.;
 
         i = 0;
         for (n=0; n<(nmax+1); n++) {
@@ -157,26 +157,26 @@ void scf_gradient_helper(double *xyz, int K,
                     }
 
                     sph_grad_phi_nlm(s, phi, X, n, l, m, lmax, &Plm[0][0], &tmp_grad[0]);
-                    grad[j+0] += tmp_grad[0] * tmp; // r
-                    grad[j+1] += tmp_grad[1] * -tmp / s; // theta
-                    grad[j+2] += tmp_grad[2] * (Tnlm[i]*cosmphi[m] - Snlm[i]*sinmphi[m]) / (s*sintheta); // phi
+                    tmp_grad2[j+0] += tmp_grad[0] * tmp; // r
+                    tmp_grad2[j+1] += tmp_grad[1] * -tmp / s; // theta
+                    tmp_grad2[j+2] += tmp_grad[2] * (Tnlm[i]*cosmphi[m] - Snlm[i]*sinmphi[m]) / (s*sintheta); // phi
 
                     // i++;
                 }
             }
         }
-        tmp_grad[0] = grad[j+0];
-        tmp_grad[1] = grad[j+1];
-        tmp_grad[2] = grad[j+2];
+        tmp_grad[0] = tmp_grad2[j+0];
+        tmp_grad[1] = tmp_grad2[j+1];
+        tmp_grad[2] = tmp_grad2[j+2];
 
         // transform to cartesian
-        grad[j+0] = sintheta*cosphi*tmp_grad[0] + X*cosphi*tmp_grad[1] - sinphi*tmp_grad[2];
-        grad[j+1] = sintheta*sinphi*tmp_grad[0] + X*sinphi*tmp_grad[1] + cosphi*tmp_grad[2];
-        grad[j+2] = X*tmp_grad[0] - sintheta*tmp_grad[1];
+        tmp_grad2[j+0] = sintheta*cosphi*tmp_grad[0] + X*cosphi*tmp_grad[1] - sinphi*tmp_grad[2];
+        tmp_grad2[j+1] = sintheta*sinphi*tmp_grad[0] + X*sinphi*tmp_grad[1] + cosphi*tmp_grad[2];
+        tmp_grad2[j+2] = X*tmp_grad[0] - sintheta*tmp_grad[1];
 
-        grad[j+0] *= G*M/(r_s*r_s);
-        grad[j+1] *= G*M/(r_s*r_s);
-        grad[j+2] *= G*M/(r_s*r_s);
+        grad[j+0] = grad[j+0] + tmp_grad2[j+0]*G*M/(r_s*r_s);
+        grad[j+1] = grad[j+1] + tmp_grad2[j+1]*G*M/(r_s*r_s);
+        grad[j+2] = grad[j+2] + tmp_grad2[j+2]*G*M/(r_s*r_s);
     }
 }
 
