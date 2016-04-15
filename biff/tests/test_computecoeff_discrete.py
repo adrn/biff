@@ -9,6 +9,10 @@ import os
 # Third-party
 import numpy as np
 from astropy.utils.data import get_pkg_data_filename
+from astropy.constants import G
+import gary.potential as gp
+from gary.units import galactic
+_G = G.decompose(galactic).value
 
 # Project
 from ..core import compute_coeffs_discrete
@@ -18,12 +22,13 @@ pos_path = os.path.abspath(get_pkg_data_filename('../data/plummer-pos.dat.gz'))
 
 def test_plummer():
     scfbi = scfbi = np.loadtxt(pos_path)
-    m_k = scfbi[:,0]
+    m_k = scfbi[:,0]*10 # masses sum to 0.1
     xyz = scfbi[:,1:4]
 
     G = 1.
     r_s = 1.
-    M = 1.
+    M = m_k.sum()
+    pot = gp.PlummerPotential(m=1/_G, b=r_s, units=galactic)
 
     nmax = 10
     lmax = 0
@@ -34,17 +39,31 @@ def test_plummer():
             for m in range(l+1):
                 nlms.append([n,l,m])
 
-    Snlm, Tnlm = np.zeros((2,nmax+1,lmax+1,lmax+1))
+    Snlm = np.zeros((nmax+1,lmax+1,lmax+1))
+    Tnlm = np.zeros((nmax+1,lmax+1,lmax+1))
 
     for nlm in nlms:
         n,l,m = nlm
         Snlm[n,l,m],Tnlm[n,l,m] = compute_coeffs_discrete(xyz, m_k, nlm, r_s=r_s)
 
-    # for first 100 particles
-    for ix in range(100):
-        ixs = np.arange(m_k.size).astype(int)
-        ixs = np.delete(ixs, ix)
+    x = np.logspace(-2,1,512)
+    xyz = np.zeros((len(x),3))
+    xyz[:,0] = x
 
-        val = -np.sum(m_k[ixs] / np.linalg.norm(xyz[ixs] - xyz[ix], axis=-1))
-        biff_val = potential(np.ascontiguousarray(xyz[ix][None]), Snlm, Tnlm, nmax, lmax, G=G, M=M, r_s=r_s)[0]
-        np.testing.assert_allclose(val, biff_val, rtol=3E-2) # 3% tolerance
+    # plot discrete vs. analytic potential
+    true_pot = pot.value(xyz.T).value
+    bfe_pot = potential(xyz, Snlm, Tnlm, nmax, lmax, G, M, r_s)
+
+    # import matplotlib.pyplot as pl
+    # pl.figure()
+    # pl.plot(Snlm[:,0,0])
+    # pl.plot(Tnlm[:,0,0])
+
+    # pl.figure()
+    # pl.semilogx(x, true_pot, marker='.', ls='none')
+    # pl.semilogx(x, bfe_pot, marker=None)
+    # # pl.semilogx(x, (true_pot-bfe_pot)/true_pot, marker=None)
+    # pl.show()
+    # # return
+
+    assert np.allclose(true_pot, bfe_pot, rtol=1E-2)
