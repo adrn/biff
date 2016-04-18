@@ -8,6 +8,12 @@ import sys
 import ah_bootstrap
 from setuptools import setup
 
+from setuptools import Distribution
+Distribution({
+    'setup_requires': ['gary'],
+    'dependency_links': ['http://github.com/adrn/gary/tarball/master#egg=gary']
+})
+
 #A dirty hack to get around some early import/configurations ambiguities
 if sys.version_info[0] >= 3:
     import builtins
@@ -108,8 +114,6 @@ setup(name=PACKAGENAME,
       description=DESCRIPTION,
       scripts=scripts,
       install_requires=['astropy', 'gary'],
-      setup_requires=['gary'],
-      dependency_links=['http://github.com/adrn/gary/tarball/master#egg=gary'],
       author=AUTHOR,
       author_email=AUTHOR_EMAIL,
       license=LICENSE,
