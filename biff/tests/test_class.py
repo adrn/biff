@@ -11,9 +11,11 @@ G = _G.decompose([u.kpc,u.Myr,u.Msun]).value
 import numpy as np
 import gary.potential as gp
 from gary.units import galactic
+from gary.potential.tests.helpers import PotentialTestBase
+from gary.potential.io import load
 
 # Project
-from .._bfe import SCFPotential
+from .. import _bfe
 
 def test_hernquist():
     nmax = 6
@@ -25,9 +27,9 @@ def test_hernquist():
     cos_coeff = np.zeros((nmax+1,lmax+1,lmax+1))
     sin_coeff = np.zeros((nmax+1,lmax+1,lmax+1))
     cos_coeff[0,0,0] = 1.
-    scf_potential = SCFPotential(m=M, r_s=r_s,
-                                 Snlm=cos_coeff, Tnlm=sin_coeff,
-                                 units=galactic)
+    scf_potential = _bfe.SCFPotential(m=M, r_s=r_s,
+                                      Snlm=cos_coeff, Tnlm=sin_coeff,
+                                      units=galactic)
 
     nbins = 128
     rr = np.linspace(0.1,10.,nbins)
@@ -45,3 +47,22 @@ def test_hernquist():
     bfe_grad = scf_potential.gradient(xyz).value
     true_grad = hernquist.gradient(xyz).value
     np.testing.assert_allclose(bfe_grad, true_grad)
+
+class TestSCFPotential(PotentialTestBase):
+    nmax = 6
+    lmax = 2
+    Snlm = np.zeros((nmax+1,lmax+1,lmax+1))
+    Tnlm = np.zeros((nmax+1,lmax+1,lmax+1))
+    Snlm[0,0,0] = 1.
+    Snlm[2,0,0] = 0.5
+    Snlm[4,0,0] = 0.25
+
+    potential = _bfe.SCFPotential(m=1E11*u.Msun, r_s=10*u.kpc,
+                                  Snlm=Snlm, Tnlm=Tnlm, units=galactic)
+    w0 = [4.0,0.7,-0.9,0.0352238,0.1579493,0.02]
+
+    def test_save_load(self, tmpdir):
+        fn = str(tmpdir.join("{}.yml".format(self.name)))
+        self.potential.save(fn)
+        p = load(fn, module=_bfe)
+        p.value(self.w0[:self.w0.size//2])
