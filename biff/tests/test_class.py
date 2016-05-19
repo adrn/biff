@@ -9,10 +9,10 @@ import astropy.units as u
 from astropy.constants import G as _G
 G = _G.decompose([u.kpc,u.Myr,u.Msun]).value
 import numpy as np
-import gary.potential as gp
-from gary.units import galactic
-from gary.potential.tests.helpers import PotentialTestBase
-from gary.potential.io import load
+import gala.potential as gp
+from gala.units import galactic
+from gala.potential.tests.helpers import PotentialTestBase
+from gala.potential.io import load
 
 # Project
 from .. import _bfe

@@ -9,6 +9,8 @@ import astropy.units as u
 from astropy.constants import G as _G
 G = _G.decompose([u.kpc,u.Myr,u.Msun]).value
 import numpy as np
+import gala.potential as gp
+from gala.units import galactic
 
 # Project
 from ..core import compute_coeffs
@@ -37,9 +39,6 @@ def _plummer_density(x, y, z, M, r_s):
     return (3*M / (4*np.pi*r_s**3)) * (1 + r2/r_s**2)**(-5/2.)
 
 def test_plummer():
-    import gary.potential as gp
-    from gary.units import galactic
-
     true_M = 1/G
     true_r_s = 1.
 
@@ -88,54 +87,70 @@ def test_plummer():
     # print(np.abs((bfe_pot - true_pot) / true_pot).max())
     # print(np.abs((bfe_grad[:,0] - true_grad[:,0]) / true_grad[:,0]).max())
 
-# -------------------------------------------------------------------
-# TODO: these are failing -- why do I suck?
-# def miyamoto_nagai_density(x, y, z, args):
-#     M, a, b = args
-#     R2 = x**2 + y**2
-#     sqrt_zb = np.sqrt(z**2+b**2)
+# ----------------------------------------------------------------------------
 
-#     A = (b**2*M / (4*np.pi))
-#     numer = a*R2 + (a + 2*sqrt_zb)*(a + sqrt_zb)**2
-#     denom = (R2 + (a + sqrt_zb)**2)**2.5 * sqrt_zb**3
+def miyamoto_nagai_density(x, y, z, M, a, b):
+    R2 = x**2 + y**2
+    sqrt_zb = np.sqrt(z**2+b**2)
 
-#     return A*numer/denom
+    A = (b**2*M / (4*np.pi))
+    numer = a*R2 + (a + 2*sqrt_zb)*(a + sqrt_zb)**2
+    denom = (R2 + (a + sqrt_zb)**2)**2.5 * sqrt_zb**3
 
-# def miyamoto_nagai_potential(x, y, z, args):
-#     M, a, b = args
-#     return -G * M / np.sqrt(x**2 + y**2 + (a + np.sqrt(z**2 + b**2))**2)
+    return A*numer/denom
 
-# def test_miyamoto_nagai():
-#     M = 1./G
-#     a = 1.
-#     b = 0.9
+def test_miyamoto_nagai():
+    M = 1E10
+    a = 1.
+    b = 1.
 
-#     nmax = 3
-#     lmax = 6
+    x = np.logspace(-2,1,512)
+    xyz = np.zeros((len(x),3))
+    xyz[:,0] = x
 
-#     Snlm = np.zeros((nmax+1,lmax+1,lmax+1))
-#     Snlm_e = np.zeros((nmax+1,lmax+1,lmax+1))
-#     Tnlm = np.zeros((nmax+1,lmax+1,lmax+1))
-#     Tnlm_e = np.zeros((nmax+1,lmax+1,lmax+1))
-#     for n in range(nmax+1):
-#         for l in range(lmax+1):
-#             for m in range(l+1):
-#                 nlm = [n,l,m]
-#                 (S,Serr),(T,Terr) = compute_coeffs(miyamoto_nagai_density,
-#                                                    nlm=nlm,
-#                                                    M=M, r_s=a,
-#                                                    args=(M,a,b))
-#                 Snlm[n,l,m] = S
-#                 Snlm_e[n,l,m] = Serr
-#                 Tnlm[n,l,m] = T
-#                 Tnlm_e[n,l,m] = Terr
+    pot = gp.MiyamotoNagaiPotential(m=M, a=a, b=b, units=galactic)
+    true_pot = pot.value(xyz.T).value
+    true_dens = pot.density(xyz.T).value
+    true_grad = pot.gradient(xyz.T).value
 
-#     Snlm[(np.abs(Snlm) < np.abs(Snlm_e))] = 0.
-#     Tnlm[(np.abs(Tnlm) < np.abs(Tnlm_e))] = 0.
+    nmax = 16
+    lmax = 0
 
-#     xyz = np.array([[0.7, 0., 0.1]])
-#     scf_potv = potential(xyz, Snlm, Tnlm, nmax=nmax, lmax=lmax, G=G, M=M, r_s=a)
-#     tru_potv = miyamoto_nagai_potential(xyz[:,0],xyz[:,1],xyz[:,2],(M,a,b))
+    Snlm = np.zeros((nmax+1,lmax+1,lmax+1))
+    Snlm_e = np.zeros((nmax+1,lmax+1,lmax+1))
+    Tnlm = np.zeros((nmax+1,lmax+1,lmax+1))
+    Tnlm_e = np.zeros((nmax+1,lmax+1,lmax+1))
+    for n in range(nmax+1):
+        for l in range(lmax+1):
+            for m in range(l+1):
+                nlm = [n,l,m]
+                (S,Serr),(T,Terr) = compute_coeffs(miyamoto_nagai_density,
+                                                   nlm=nlm,
+                                                   M=M, r_s=a,
+                                                   args=(M,a,b))
+                Snlm[n,l,m] = S
+                Snlm_e[n,l,m] = Serr
+                Tnlm[n,l,m] = T
+                Tnlm_e[n,l,m] = Terr
 
-#     print(scf_potv)
-#     print(tru_potv)
+    # Snlm[(np.abs(Snlm) < np.abs(Snlm_e))] = 0.
+    # Tnlm[(np.abs(Tnlm) < np.abs(Tnlm_e))] = 0.
+
+    bfe_dens = density(xyz, Snlm, Tnlm, nmax, lmax, M, a)
+    bfe_pot = potential(xyz, Snlm, Tnlm, nmax, lmax, G, M, a)
+    bfe_grad = gradient(xyz, Snlm, Tnlm, nmax, lmax, G, M, a)
+
+    import matplotlib.pyplot as pl
+
+    fig,axes = pl.subplots(3, 1, figsize=(6,12), sharex=True)
+
+    axes[0].loglog(x, true_dens)
+    axes[0].loglog(x, bfe_dens)
+
+    axes[1].semilogx(x, true_pot)
+    axes[1].semilogx(x, bfe_pot)
+
+    axes[2].semilogx(x, true_grad[0])
+    axes[2].semilogx(x, bfe_grad[:,0])
+
+    pl.show()

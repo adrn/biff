@@ -30,7 +30,7 @@ env:
         # Cython code, you can set CONDA_DEPENDENCIES=''
         - CONDA_CHANNELS="${CONDA_CHANNELS} https://conda.anaconda.org/asmeurer"
         - CONDA_DEPENDENCIES='cython jinja2 scipy matplotlib==1.5.0 gsl'
-        - PIP_DEPENDENCIES='git+https://github.com/adrn/gary'
+        - PIP_DEPENDENCIES='astro-gala'
         # HACK: matplotlib version until 1.5.2 comes out
         - C_INCLUDE_PATH="/home/travis/miniconda/envs/test/include/"
 

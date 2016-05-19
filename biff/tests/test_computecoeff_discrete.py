@@ -10,8 +10,8 @@ import os
 import numpy as np
 from astropy.utils.data import get_pkg_data_filename
 from astropy.constants import G
-import gary.potential as gp
-from gary.units import galactic
+import gala.potential as gp
+from gala.units import galactic
 _G = G.decompose(galactic).value
 
 # Project
