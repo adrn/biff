@@ -7,10 +7,13 @@ from astropy_helpers import setup_helpers
 
 def get_extensions():
 
-    # Get gala path
-    import gala
-    gala_base_path = os.path.split(gala.__file__)[0]
-    gala_path = os.path.join(gala_base_path, 'potential')
+    try:
+        # Get gala path
+        import gala
+        gala_base_path = os.path.split(gala.__file__)[0]
+        gala_path = os.path.join(gala_base_path, 'potential')
+    except ImportError:
+        gala_path = None
 
     coeff_cfg = setup_helpers.DistutilsExtensionArgs()
     coeff_cfg['include_dirs'].append('numpy')
@@ -23,7 +26,8 @@ def get_extensions():
 
     bfe_cfg = setup_helpers.DistutilsExtensionArgs()
     bfe_cfg['include_dirs'].append('numpy')
-    bfe_cfg['include_dirs'].append(gala_path)
+    if gala_path is not None:
+        bfe_cfg['include_dirs'].append(gala_path)
     bfe_cfg['include_dirs'].append('biff/src')
     bfe_cfg['sources'].append('biff/bfe.pyx')
     bfe_cfg['sources'].append('biff/src/bfe.c')
