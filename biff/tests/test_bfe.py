@@ -56,3 +56,66 @@ def test_hernquist():
     bfe_grad = gradient(xyz, Snlm, Tnlm, nmax, lmax, G=G, M=M, r_s=r_s)
     true_grad = hernquist_gradient(xyz.T, M, r_s)
     np.testing.assert_allclose(bfe_grad.T, true_grad)
+
+# ----------------------------------------------------------------------------
+
+def pure_py(xyz, Snlm, Tnlm, nmax, lmax):
+    from scipy.special import lpmv, gegenbauer
+    from math import factorial as f
+
+    Plm = lambda l,m,costh: lpmv(m, l, costh)
+    Ylmth = lambda l,m,costh: np.sqrt((2*l+1)/(4 * np.pi) * f(l-m)/f(l+m)) * Plm(l,m,costh)
+
+    twopi = 2*np.pi
+    sqrt4pi = np.sqrt(4*np.pi)
+
+    r = np.sqrt(np.sum(xyz**2, axis=0))
+    X = xyz[2]/r # cos(theta)
+    phi = np.arctan2(xyz[1], xyz[0])
+    xsi = (r - 1) / (r + 1)
+
+    density = 0
+    potenti = 0
+    for l in range(lmax+1):
+        r_term1 = r**l / (r*(1+r)**(2*l+3))
+        r_term2 = r**l / (1+r)**(2*l+1)
+        for m in range(l+1):
+            for n in range(nmax+1):
+                Cn = gegenbauer(n, 2*l+3/2)
+                Knl = 0.5 * n * (n+4*l+3) + (l+1)*(2*l+1)
+                rho_nl = Knl / twopi * sqrt4pi * r_term1 * Cn(xsi)
+                phi_nl = -sqrt4pi * r_term2 * Cn(xsi)
+
+                density += rho_nl * Ylmth(l,m,X) * (Snlm[n,l,m]*np.cos(m*phi) +
+                                                    Tnlm[n,l,m]*np.sin(m*phi))
+                potenti += phi_nl * Ylmth(l,m,X) * (Snlm[n,l,m]*np.cos(m*phi) +
+                                                    Tnlm[n,l,m]*np.sin(m*phi))
+
+    return density, potenti
+
+def test_pure_py():
+
+    nmax = 6
+    lmax = 4
+    xyz = np.ascontiguousarray(np.array([[1.,0.,1.], [1.,1.,0.], [0.,1.,1.]]).T)
+
+    # Snlm = np.random.uniform(-1,1,size=(nmax+1,lmax+1,lmax+1))
+    Snlm = np.zeros((nmax+1,lmax+1,lmax+1))
+    Snlm[0,0,0] = 1.
+    Snlm[2,0,0] = 1E-3
+    Snlm[4,0,0] = 1E-5
+    Snlm[6,0,0] = 1E-6
+    Tnlm = np.zeros_like(Snlm)
+
+    py_den,py_pot = pure_py(xyz, Snlm, Tnlm, nmax, lmax)
+
+    cy_den = density(xyz, Snlm, Tnlm, nmax, lmax, M=1., r_s=1.)
+    cy_pot = potential(xyz, Snlm, Tnlm, nmax, lmax, G=1., M=1., r_s=1.)
+
+    print("Density:")
+    print("\tPython", py_den)
+    print("\tCython", cy_den)
+    print("-"*64)
+    print("Potential:")
+    print("\tPython", py_pot)
+    print("\tCython", cy_pot)
