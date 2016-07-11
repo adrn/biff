@@ -60,22 +60,26 @@ def test_hernquist():
 # ----------------------------------------------------------------------------
 
 def pure_py(xyz, Snlm, Tnlm, nmax, lmax):
-    from scipy.special import lpmv, gegenbauer
+    from scipy.special import lpmv, gegenbauer, eval_gegenbauer, gamma
     from math import factorial as f
 
     Plm = lambda l,m,costh: lpmv(m, l, costh)
     Ylmth = lambda l,m,costh: np.sqrt((2*l+1)/(4 * np.pi) * f(l-m)/f(l+m)) * Plm(l,m,costh)
 
     twopi = 2*np.pi
+    sqrtpi = np.sqrt(np.pi)
     sqrt4pi = np.sqrt(4*np.pi)
 
     r = np.sqrt(np.sum(xyz**2, axis=0))
     X = xyz[2]/r # cos(theta)
+    sinth = np.sqrt(1 - X**2)
     phi = np.arctan2(xyz[1], xyz[0])
     xsi = (r - 1) / (r + 1)
 
     density = 0
     potenti = 0
+    gradien = np.zeros_like(xyz)
+    sph_gradien = np.zeros_like(xyz)
     for l in range(lmax+1):
         r_term1 = r**l / (r*(1+r)**(2*l+3))
         r_term2 = r**l / (1+r)**(2*l+1)
@@ -91,31 +95,64 @@ def pure_py(xyz, Snlm, Tnlm, nmax, lmax):
                 potenti += phi_nl * Ylmth(l,m,X) * (Snlm[n,l,m]*np.cos(m*phi) +
                                                     Tnlm[n,l,m]*np.sin(m*phi))
 
-    return density, potenti
+                # derivatives
+                dphinl_dr = (2*sqrtpi*np.power(r,-1 + l)*np.power(1 + r,-3 - 2*l)*
+                              (-2*(3 + 4*l)*r*eval_gegenbauer(-1 + n,2.5 + 2*l,(-1 + r)/(1 + r)) +
+                              (1 + r)*(l*(-1 + r) + r)*eval_gegenbauer(n,1.5 + 2*l,(-1 + r)/(1 + r))))
+                sph_gradien[0] += dphinl_dr * Ylmth(l,m,X) * (Snlm[n,l,m]*np.cos(m*phi) +
+                                                              Tnlm[n,l,m]*np.sin(m*phi))
+
+                A = np.sqrt((2*l+1) / (4*np.pi)) * np.sqrt(gamma(l-m+1) / gamma(l+m+1))
+                dYlm_dth = A / sinth * (l*X*Plm(l,m,X) - (l+m)*Plm(l-1,m,X))
+                sph_gradien[1] += (1/r) * dYlm_dth * phi_nl * (Snlm[n,l,m]*np.cos(m*phi) +
+                                                               Tnlm[n,l,m]*np.sin(m*phi))
+
+                sph_gradien[2] += (m/(r*sinth)) * phi_nl * Ylmth(l,m,X) * (-Snlm[n,l,m]*np.sin(m*phi) +
+                                                                           Tnlm[n,l,m]*np.cos(m*phi))
+
+    cosphi = np.cos(phi)
+    sinphi = np.sin(phi)
+    gradien[0] = sinth*cosphi*sph_gradien[0] + X*cosphi*sph_gradien[1] - sinphi*sph_gradien[2]
+    gradien[1] = sinth*sinphi*sph_gradien[0] + X*sinphi*sph_gradien[1] + cosphi*sph_gradien[2]
+    gradien[2] = X*sph_gradien[0] - sinth*sph_gradien[1]
+
+    return density, potenti, gradien
 
 def test_pure_py():
 
     nmax = 6
     lmax = 4
-    xyz = np.ascontiguousarray(np.array([[1.,0.,1.], [1.,1.,0.], [0.,1.,1.]]).T)
 
-    # Snlm = np.random.uniform(-1,1,size=(nmax+1,lmax+1,lmax+1))
+    # TODO: test many more positions
+    xyz = np.array([[1.,0.,1.],
+                    [1.,1.,0.],
+                    [0.,1.,1.]])
+
+    # first try spherical:
     Snlm = np.zeros((nmax+1,lmax+1,lmax+1))
-    Snlm[0,0,0] = 1.
-    Snlm[2,0,0] = 1E-3
-    Snlm[4,0,0] = 1E-5
-    Snlm[6,0,0] = 1E-6
+    Snlm[:,0,0] = np.logspace(0., -4, nmax+1)
     Tnlm = np.zeros_like(Snlm)
 
-    py_den,py_pot = pure_py(xyz, Snlm, Tnlm, nmax, lmax)
+    py_den,py_pot,py_grd = pure_py(xyz.T, Snlm, Tnlm, nmax, lmax)
 
     cy_den = density(xyz, Snlm, Tnlm, nmax, lmax, M=1., r_s=1.)
     cy_pot = potential(xyz, Snlm, Tnlm, nmax, lmax, G=1., M=1., r_s=1.)
+    cy_grd = gradient(xyz, Snlm, Tnlm, nmax, lmax, G=1., M=1., r_s=1.).T
 
-    print("Density:")
-    print("\tPython", py_den)
-    print("\tCython", cy_den)
-    print("-"*64)
-    print("Potential:")
-    print("\tPython", py_pot)
-    print("\tCython", cy_pot)
+    assert np.allclose(py_den, cy_den)
+    assert np.allclose(py_pot, cy_pot)
+    assert np.allclose(py_grd, cy_grd)
+
+    # non-spherical:
+    Snlm = np.random.uniform(-1,1,size=(nmax+1,lmax+1,lmax+1))
+    Tnlm = np.zeros_like(Snlm)
+
+    py_den,py_pot,py_grd = pure_py(xyz.T, Snlm, Tnlm, nmax, lmax)
+
+    cy_den = density(xyz, Snlm, Tnlm, nmax, lmax, M=1., r_s=1.)
+    cy_pot = potential(xyz, Snlm, Tnlm, nmax, lmax, G=1., M=1., r_s=1.)
+    cy_grd = gradient(xyz, Snlm, Tnlm, nmax, lmax, G=1., M=1., r_s=1.).T
+
+    assert np.allclose(py_den, cy_den)
+    assert np.allclose(py_pot, cy_pot)
+    assert np.allclose(py_grd, cy_grd)
