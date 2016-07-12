@@ -19,7 +19,7 @@ import numpy as np
 from .._bfe import density, potential, gradient
 
 @pytest.mark.parametrize("basename", [
-    'simple-hernquist', 'random', 'wang-zhao',
+    'simple-hernquist', 'multi-hernquist', 'random', 'wang-zhao',
 ])
 @pytest.mark.skipif('True')
 def test_density(basename):
@@ -47,7 +47,7 @@ def test_density(basename):
     # TODO: nothing to compare this to....
 
 @pytest.mark.parametrize("basename", [
-    'simple-hernquist', 'random', 'wang-zhao',
+    'simple-hernquist', 'multi-hernquist', 'random', 'wang-zhao',
 ])
 def test_potential(basename):
     pos_path = os.path.abspath(get_pkg_data_filename('../data/positions.dat.gz'))
@@ -77,7 +77,7 @@ def test_potential(basename):
     np.testing.assert_allclose(potv, scf_potv, rtol=1E-6)
 
 @pytest.mark.parametrize("basename", [
-    'simple-hernquist', 'random', 'wang-zhao',
+    'simple-hernquist', 'multi-hernquist', 'random', 'wang-zhao',
 ])
 def test_gradient(basename):
     pos_path = os.path.abspath(get_pkg_data_filename('../data/positions.dat.gz'))
