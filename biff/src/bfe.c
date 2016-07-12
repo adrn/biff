@@ -167,18 +167,13 @@ void scf_gradient_helper(double *xyz, int K,
         tmp_grad[2] = tmp_grad2[j+2];
 
         // transform to cartesian
-        // tmp_grad2[j+0] = sintheta*cosphi*tmp_grad[0] + X*cosphi*tmp_grad[1] - sinphi*tmp_grad[2];
-        // tmp_grad2[j+1] = sintheta*sinphi*tmp_grad[0] + X*sinphi*tmp_grad[1] + cosphi*tmp_grad[2];
-        // tmp_grad2[j+2] = X*tmp_grad[0] - sintheta*tmp_grad[1];
+        tmp_grad2[j+0] = sintheta*cosphi*tmp_grad[0] + X*cosphi*tmp_grad[1] - sinphi*tmp_grad[2];
+        tmp_grad2[j+1] = sintheta*sinphi*tmp_grad[0] + X*sinphi*tmp_grad[1] + cosphi*tmp_grad[2];
+        tmp_grad2[j+2] = X*tmp_grad[0] - sintheta*tmp_grad[1];
 
-        // grad[j+0] = grad[j+0] + tmp_grad2[j+0]*G*M/(r_s*r_s);
-        // grad[j+1] = grad[j+1] + tmp_grad2[j+1]*G*M/(r_s*r_s);
-        // grad[j+2] = grad[j+2] + tmp_grad2[j+2]*G*M/(r_s*r_s);
-
-        // HACK:
-        grad[j+0] = grad[j+0] + tmp_grad2[j+0];
-        grad[j+1] = grad[j+1] + tmp_grad2[j+1];
-        grad[j+2] = grad[j+2] + tmp_grad2[j+2];
+        grad[j+0] = grad[j+0] + tmp_grad2[j+0]*G*M/(r_s*r_s);
+        grad[j+1] = grad[j+1] + tmp_grad2[j+1]*G*M/(r_s*r_s);
+        grad[j+2] = grad[j+2] + tmp_grad2[j+2]*G*M/(r_s*r_s);
     }
 }
 
