@@ -23,6 +23,9 @@ run:
 	./$(PROG) simple-hernquist.coeff simple-hernquist-accp.dat
 	gzip simple-hernquist-accp.dat
 
+	./$(PROG) multi-hernquist.coeff multi-hernquist-accp.dat
+	gzip multi-hernquist-accp.dat
+
 	./$(PROG) random.coeff random-accp.dat
 	gzip random-accp.dat
 

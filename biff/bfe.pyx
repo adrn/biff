@@ -16,10 +16,10 @@ import numpy as np
 cimport numpy as np
 from libc.math cimport M_PI
 
-# Gary
-from gary.units import galactic
-from gary.potential.cpotential cimport CPotentialWrapper
-from gary.potential.cpotential import CPotentialBase
+# Gala
+from gala.units import galactic
+from gala.potential.cpotential cimport CPotentialWrapper
+from gala.potential.cpotential import CPotentialBase
 
 cdef extern from "math.h":
     double sqrt(double x) nogil
