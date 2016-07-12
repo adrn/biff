@@ -50,5 +50,5 @@ distribute-*.tar.gz
 .DS_Store
 
 
-*.ipynb
+notebooks/*
 test-data-helper/*.dat.gz
