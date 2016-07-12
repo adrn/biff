@@ -112,7 +112,6 @@ void scf_gradient_helper(double *xyz, int K,
     double cosmphi[lmax+1], sinmphi[lmax+1];
     memset(cosmphi, 0, (lmax+1)*sizeof(double));
     memset(sinmphi, 0, (lmax+1)*sizeof(double));
-    double Plm[lmax+1][lmax+1];
 
     for (k=0; k<K; k++) {
         j = 3*k;
@@ -129,10 +128,6 @@ void scf_gradient_helper(double *xyz, int K,
         for (m=0; m<(lmax+1); m++) {
             cosmphi[m] = cos(m*phi);
             sinmphi[m] = sin(m*phi);
-
-            for (n=0; n<(lmax+1); n++) {
-               Plm[m][n] = NAN;
-            }
         }
 
         // zero out
@@ -142,6 +137,8 @@ void scf_gradient_helper(double *xyz, int K,
 
         i = 0;
         for (n=0; n<(nmax+1); n++) {
+            // gsl_sf_legendre_deriv_array(GSL_SF_LEGENDRE_SPHARM, lmax, X,
+            //                             double result_array[], double result_deriv_array[]);
             for (l=0; l<(lmax+1); l++) {
                 for (m=0; m<(lmax+1); m++) {
                     if (m > l) {
@@ -156,9 +153,9 @@ void scf_gradient_helper(double *xyz, int K,
                         continue;
                     }
 
-                    sph_grad_phi_nlm(s, phi, X, n, l, m, lmax, &Plm[0][0], &tmp_grad[0]);
+                    sph_grad_phi_nlm(s, phi, X, n, l, m, lmax, &tmp_grad[0]);
                     tmp_grad2[j+0] += tmp_grad[0] * tmp; // r
-                    tmp_grad2[j+1] += tmp_grad[1] * -tmp / s; // theta
+                    tmp_grad2[j+1] += tmp_grad[1] * tmp; // theta
                     tmp_grad2[j+2] += tmp_grad[2] * (Tnlm[i]*cosmphi[m] - Snlm[i]*sinmphi[m]) / (s*sintheta); // phi
 
                     // i++;
@@ -170,13 +167,18 @@ void scf_gradient_helper(double *xyz, int K,
         tmp_grad[2] = tmp_grad2[j+2];
 
         // transform to cartesian
-        tmp_grad2[j+0] = sintheta*cosphi*tmp_grad[0] + X*cosphi*tmp_grad[1] - sinphi*tmp_grad[2];
-        tmp_grad2[j+1] = sintheta*sinphi*tmp_grad[0] + X*sinphi*tmp_grad[1] + cosphi*tmp_grad[2];
-        tmp_grad2[j+2] = X*tmp_grad[0] - sintheta*tmp_grad[1];
+        // tmp_grad2[j+0] = sintheta*cosphi*tmp_grad[0] + X*cosphi*tmp_grad[1] - sinphi*tmp_grad[2];
+        // tmp_grad2[j+1] = sintheta*sinphi*tmp_grad[0] + X*sinphi*tmp_grad[1] + cosphi*tmp_grad[2];
+        // tmp_grad2[j+2] = X*tmp_grad[0] - sintheta*tmp_grad[1];
 
-        grad[j+0] = grad[j+0] + tmp_grad2[j+0]*G*M/(r_s*r_s);
-        grad[j+1] = grad[j+1] + tmp_grad2[j+1]*G*M/(r_s*r_s);
-        grad[j+2] = grad[j+2] + tmp_grad2[j+2]*G*M/(r_s*r_s);
+        // grad[j+0] = grad[j+0] + tmp_grad2[j+0]*G*M/(r_s*r_s);
+        // grad[j+1] = grad[j+1] + tmp_grad2[j+1]*G*M/(r_s*r_s);
+        // grad[j+2] = grad[j+2] + tmp_grad2[j+2]*G*M/(r_s*r_s);
+
+        // HACK:
+        grad[j+0] = grad[j+0] + tmp_grad2[j+0];
+        grad[j+1] = grad[j+1] + tmp_grad2[j+1];
+        grad[j+2] = grad[j+2] + tmp_grad2[j+2];
     }
 }
 
