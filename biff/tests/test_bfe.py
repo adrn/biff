@@ -110,11 +110,16 @@ def pure_py(xyz, Snlm, Tnlm, nmax, lmax):
                 sph_gradien[2] += (m/(r*sinth)) * phi_nl * Ylmth(l,m,X) * (-Snlm[n,l,m]*np.sin(m*phi) +
                                                                            Tnlm[n,l,m]*np.cos(m*phi))
 
-    cosphi = np.cos(phi)
-    sinphi = np.sin(phi)
-    gradien[0] = sinth*cosphi*sph_gradien[0] + X*cosphi*sph_gradien[1] - sinphi*sph_gradien[2]
-    gradien[1] = sinth*sinphi*sph_gradien[0] + X*sinphi*sph_gradien[1] + cosphi*sph_gradien[2]
-    gradien[2] = X*sph_gradien[0] - sinth*sph_gradien[1]
+    # cosphi = np.cos(phi)
+    # sinphi = np.sin(phi)
+    # gradien[0] = sinth*cosphi*sph_gradien[0] + X*cosphi*sph_gradien[1] - sinphi*sph_gradien[2]
+    # gradien[1] = sinth*sinphi*sph_gradien[0] + X*sinphi*sph_gradien[1] + cosphi*sph_gradien[2]
+    # gradien[2] = X*sph_gradien[0] - sinth*sph_gradien[1]
+
+    # HACK: leave as spherical
+    gradien[0] = sph_gradien[0]
+    gradien[1] = sph_gradien[1]
+    gradien[2] = sph_gradien[2]
 
     return density, potenti, gradien
 
@@ -123,10 +128,10 @@ def test_pure_py():
     nmax = 6
     lmax = 4
 
-    # TODO: test many more positions
-    xyz = np.array([[1.,0.,1.],
-                    [1.,1.,0.],
-                    [0.,1.,1.]])
+    # xyz = np.array([[1.,0.,1.],
+    #                 [1.,1.,0.],
+    #                 [0.,1.,1.]])
+    xyz = np.random.uniform(-2.,2.,size=(128,3))
 
     # first try spherical:
     Snlm = np.zeros((nmax+1,lmax+1,lmax+1))
