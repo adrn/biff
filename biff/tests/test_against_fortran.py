@@ -6,6 +6,7 @@ __author__ = "adrn <adrn@astro.columbia.edu>"
 
 # Standard library
 import os
+from math import factorial
 
 # Third-party
 import astropy.units as u
@@ -19,7 +20,7 @@ import numpy as np
 from .._bfe import density, potential, gradient
 
 @pytest.mark.parametrize("basename", [
-    'simple-hernquist', 'multi-hernquist', 'random', 'wang-zhao',
+    'simple-hernquist', 'multi-hernquist', 'simple-nonsph', 'random', 'wang-zhao',
 ])
 @pytest.mark.skipif('True')
 def test_density(basename):
@@ -37,6 +38,13 @@ def test_density(basename):
     sin_coeff = np.zeros((nmax+1,lmax+1,lmax+1))
     for row in coeff:
         n,l,m,cc,sc = row
+
+        # transform from Lowing 2011 coefficients to H&O 1992 coefficients
+        if l != 0:
+            fac = np.sqrt(4*np.pi) * np.sqrt((2*l+1) / (4*np.pi) * factorial(l-m) / factorial(l+m))
+            cc /= fac
+            sc /= fac
+
         cos_coeff[int(n),int(l),int(m)] = cc
         sin_coeff[int(n),int(l),int(m)] = sc
 
@@ -47,16 +55,17 @@ def test_density(basename):
     # TODO: nothing to compare this to....
 
 @pytest.mark.parametrize("basename", [
-    'simple-hernquist', 'multi-hernquist', 'random', 'wang-zhao',
+    'simple-hernquist', 'multi-hernquist', 'simple-nonsph', 'random', 'wang-zhao',
 ])
 def test_potential(basename):
-    pos_path = os.path.abspath(get_pkg_data_filename('../data/positions.dat.gz'))
     coeff_path = os.path.abspath(get_pkg_data_filename('../data/{0}.coeff'.format(basename)))
     accp_path = os.path.abspath(get_pkg_data_filename('../data/{0}-accp.dat.gz'.format(basename)))
 
-    xyz = np.loadtxt(pos_path, skiprows=1)
     coeff = np.atleast_2d(np.loadtxt(coeff_path, skiprows=1))
     accp = np.loadtxt(accp_path)
+
+    pos_path = os.path.abspath(get_pkg_data_filename('../data/positions.dat.gz'))
+    xyz = np.loadtxt(pos_path, skiprows=1)
 
     nmax = coeff[:,0].astype(int).max()
     lmax = coeff[:,1].astype(int).max()
@@ -65,6 +74,13 @@ def test_potential(basename):
     sin_coeff = np.zeros((nmax+1,lmax+1,lmax+1))
     for row in coeff:
         n,l,m,cc,sc = row
+
+        # transform from Lowing 2011 coefficients to H&O 1992 coefficients
+        if l != 0:
+            fac = np.sqrt(4*np.pi) * np.sqrt((2*l+1) / (4*np.pi) * factorial(l-m) / factorial(l+m))
+            cc /= fac
+            sc /= fac
+
         cos_coeff[int(n),int(l),int(m)] = cc
         sin_coeff[int(n),int(l),int(m)] = sc
 
@@ -77,7 +93,7 @@ def test_potential(basename):
     np.testing.assert_allclose(potv, scf_potv, rtol=1E-6)
 
 @pytest.mark.parametrize("basename", [
-    'simple-hernquist', 'multi-hernquist', 'random', 'wang-zhao',
+    'simple-hernquist', 'multi-hernquist', 'simple-nonsph', 'random', 'wang-zhao',
 ])
 def test_gradient(basename):
     pos_path = os.path.abspath(get_pkg_data_filename('../data/positions.dat.gz'))
@@ -95,6 +111,13 @@ def test_gradient(basename):
     sin_coeff = np.zeros((nmax+1,lmax+1,lmax+1))
     for row in coeff:
         n,l,m,cc,sc = row
+
+        # transform from Lowing 2011 coefficients to H&O 1992 coefficients
+        if l != 0:
+            fac = np.sqrt(4*np.pi) * np.sqrt((2*l+1) / (4*np.pi) * factorial(l-m) / factorial(l+m))
+            cc /= fac
+            sc /= fac
+
         cos_coeff[int(n),int(l),int(m)] = cc
         sin_coeff[int(n),int(l),int(m)] = sc
 
