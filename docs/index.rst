@@ -14,6 +14,7 @@ Installation
 Overview
 ========
 
+TODO: note difference in coefficients from HO92 - use Lowing form
 
 
 Reference/API
