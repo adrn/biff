@@ -9,10 +9,12 @@ C     gfortran -ffixed-line-length-0 -g -fbacktrace -ffpe-trap=zero,overflow,und
           REAL*8 tmp1,tmp2
           CHARACTER*32 coeff_filename
           CHARACTER*32 output_filename
+          CHARACTER*32 pos_filename
 
 C         Read coeff file name and output filename from command line
           CALL getarg(1, coeff_filename)
-          CALL getarg(2, output_filename)
+          CALL getarg(2, pos_filename)
+          CALL getarg(3, output_filename)
 
 C         Initialize crap
           G = 1.
@@ -29,6 +31,16 @@ C         Initialize crap
 C         First read the number of coeffs off the first line
           READ(uincoef,*) ncoeff
 
+C         Zero out coeff arrays
+          DO 867 n=0,nmax
+            DO 868 l=0,lmax
+              DO 869 m=0,l
+                cossum(n,l,m) = zero
+                sinsum(n,l,m) = zero
+ 869      CONTINUE
+ 868      CONTINUE
+ 867      CONTINUE
+
 C         Read in coefficients from file
           DO 130 i=1,ncoeff
             READ(uincoef,*) n,l,m,tmp1,tmp2
@@ -36,7 +48,7 @@ C         Read in coefficients from file
             sinsum(n,l,m) = tmp2
  130      CONTINUE
 
-          OPEN(ubodsin,FILE='positions.dat',STATUS='OLD')
+          OPEN(ubodsin,FILE=pos_filename,STATUS='OLD')
           READ(ubodsin,*) nbodies
 
           DO 10 i=1,nbodies
@@ -224,6 +236,7 @@ C=======================================================================
                     dlm=dlm+ultrasp(n,l)*sinsum(n,l,m)
                     elm=elm+ultrasp1(n,l)*cossum(n,l,m)
                     flm=flm+ultrasp1(n,l)*sinsum(n,l,m)
+
  150             CONTINUE
 
                  temp3=temp3+plm(l,m)*(clm*cosmphi(m)+dlm*sinmphi(m))

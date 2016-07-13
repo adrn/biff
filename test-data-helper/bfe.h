@@ -1,6 +1,6 @@
        INTEGER nbods,nmax,lmax,lskip,ibound,uincoef,nbodies,ubodsin,ubodsout
-C       PARAMETER(nbods=1024,nmax=6,lmin=0,lmax=4,lskip=1)
-       PARAMETER(nbods=65536,nmax=3,lmin=0,lmax=6,lskip=1)
+C       PARAMETER(nbods=1024,nmax=6,lmin=0,lmax=6,lskip=1)
+       PARAMETER(nbods=65536,nmax=6,lmin=0,lmax=6,lskip=1)
 
        REAL*8 x,y,z,vx,vy,vz,mass,pot,
      &        sinsum,cossum,ax,ay,az
