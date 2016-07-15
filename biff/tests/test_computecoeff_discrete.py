@@ -55,9 +55,6 @@ def test_plummer():
     bfe_pot = potential(xyz, Snlm, Tnlm, nmax, lmax, G, M, r_s)
 
     # import matplotlib.pyplot as pl
-    # pl.figure()
-    # pl.plot(Snlm[:,0,0])
-    # pl.plot(Tnlm[:,0,0])
 
     # pl.figure()
     # pl.semilogx(x, true_pot, marker='.', ls='none')

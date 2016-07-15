@@ -54,20 +54,20 @@ extern double c_Tnlm_integrand(double phi, double X, double xsi,
 
 extern void c_STnlm_discrete(double *s, double *phi, double *X, double *m_k, int K,
                              int n, int l, int m, double *ST) {
-    // Taken from Eq. 16 of Lowing et al.
-    double Knl = 0.5*n*(n + 4*l + 3) + (l + 1)*(2*l + 1);
+    // temporary variables
+    double Knl, Anl_til, krond, numer, denom, coeff;
 
-    double krond, _tmp;
+    Knl = 0.5*n*(n + 4*l + 3) + (l + 1)*(2*l + 1);
     if (m == 0) {
         krond = 1.;
     } else {
         krond = 0.;
     }
 
-    double Anl = -pow(2., 8*l+6) / (4*M_PI*Knl) * \
-                 (gsl_sf_fact(n) * (n + 2*l + 1.5) * pow(gsl_sf_gamma(2*l + 1.5),2)) / \
-                 gsl_sf_gamma(n + 4*l + 3);
-    double coeff = Anl * (2.-krond);
+    numer = gsl_sf_fact(n) * (n + 2*l + 1.5) * pow(gsl_sf_gamma(2*l + 1.5),2);
+    denom = gsl_sf_gamma(n + 4*l + 3);
+    Anl_til = -(pow(2., 8*l+6) / (4*M_PI*Knl)) * numer / denom;
+    coeff = (2 - krond) * Anl_til;
 
     // zero out coeff storage array
     ST[0] = 0.;
