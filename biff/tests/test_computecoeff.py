@@ -140,23 +140,20 @@ def flattened_hernquist_gradient(x, y, z, G, M, a, q):
     return np.array([gx, gy, gz])
 
 def test_flattened_hernquist():
+    """
+    This test compares the coefficients against some computed in the mathematica
+    notebook 'flattened-hernquist.nb'. nmax and lmax here must match nmax and lmax
+    in that notebook.
+    """
+
     G = 1.
     M = 1
     a = 1.
     q = 0.9
 
-    nmax = 4
-    lmax = 6
-
-    # x = np.logspace(-2,1,512)
-    # xyz = np.zeros((len(x),3))
-    # xyz[:,0] = x
-
-    # TODO: no potential class for this
-    # pot = gp.MiyamotoNagaiPotential(m=M, a=a, b=b, units=galactic)
-    # true_pot = pot.value(xyz.T).value
-    # true_dens = pot.density(xyz.T).value # TODO: until fixed in Gala
-    # true_grad = pot.gradient(xyz.T).value.T
+    # Note: this must be the same as in the mathematica notebook
+    nmax = 8
+    lmax = 8
 
     Snlm = np.zeros((nmax+1,lmax+1,lmax+1)) + np.nan
     Snlm_e = np.zeros((nmax+1,lmax+1,lmax+1)) + np.nan
@@ -181,10 +178,44 @@ def test_flattened_hernquist():
     m_Snl0 = np.loadtxt(coeff_path, delimiter=',')
     m_Snl0 = m_Snl0[:,::2] # every other l
 
-    print("python:", Snlm[0,::2,0])
-    print("mathematica:", m_Snl0[0])
+    assert np.allclose(Snlm[0,::2,0], m_Snl0[0])
+
+    Snlm[np.isnan(Snlm)] = 0.
+    Tnlm[np.isnan(Tnlm)] = 0.
+
+    # check that random points match in gradient and density
+    np.random.seed(42)
+    n_test = 1024
+    r = 10.*np.cbrt(np.random.uniform(0.1**3,1,size=n_test)) # 1 to 10
+    θ = np.arccos(2*np.random.uniform(size=n_test) - 1)
+    φ = np.random.uniform(0, 2*np.pi, size=n_test)
+    x = r*np.cos(φ)*np.sin(θ)
+    y = r*np.sin(φ)*np.sin(θ)
+    z = r*np.cos(θ)
+    xyz = np.vstack((x, y, z))
+
+    # confirmed by testing...
+    tru_dens = flattened_hernquist_density(*xyz, M, a, q)
+    bfe_dens = density(np.ascontiguousarray(xyz.T), Snlm, Tnlm, nmax, lmax, M, a)
+    assert np.all((np.abs(bfe_dens - tru_dens) / tru_dens) < 0.05) # <5%
+
+    tru_grad = np.array([flattened_hernquist_gradient(*xyz[:,i], G, M, a, q)
+                        for i in range(xyz.shape[1])]).T
+    bfe_grad = gradient(np.ascontiguousarray(xyz.T), Snlm, Tnlm, nmax, lmax, G, M, a).T
+
+    # check what typical errors are
+    # for j in range(3):
+    #     pl.hist(np.abs((bfe_grad[j]-tru_grad[j])/tru_grad[j]))
+
+    for j in range(3):
+        assert np.all(np.abs((bfe_grad[j]-tru_grad[j])/tru_grad[j]) < 0.005) # 0.5%
+
     return
 
+    # ------------------------------------------------------------------------
+    # plots:
+
+    # coefficients
     fig,ax = pl.subplots(1,1,figsize=(10,8))
     n,l = np.mgrid[:nmax+1, :lmax+1]
     c = ax.scatter(n.ravel(), l.ravel(), c=Snlm[:,:,0].ravel(), s=64,
@@ -204,13 +235,8 @@ def test_flattened_hernquist():
                               10.**np.arange(-5,2+1,1)))
     fig.colorbar(c, ticks=tickloc, format='%.0e')
     fig.tight_layout()
-    # pl.show()
-
-    Snlm[np.isnan(Snlm)] = 0.
-    Tnlm[np.isnan(Tnlm)] = 0.
 
     # contour plot in r,θ at φ=0
-    fig,ax = pl.subplots(1, 1, figsize=(8,8))
 
     rgrid = np.logspace(-1, 1., 128)
     θgrid = np.linspace(0, np.pi, 128)
@@ -222,6 +248,8 @@ def test_flattened_hernquist():
     _xyz = np.vstack((x.ravel(),np.zeros_like(x.ravel()),z.ravel()))
     bfe_dens = density(np.ascontiguousarray(_xyz.T), Snlm, Tnlm, nmax, lmax, M, a)
     true_dens = flattened_hernquist_density(*_xyz, M, a, q)
+
+    fig,ax = pl.subplots(1, 1, figsize=(8,8))
 
     levels = 10**np.linspace(-4.5, 1, 16)
     ax.contour(np.log10(r), θ, true_dens.reshape(x.shape),
