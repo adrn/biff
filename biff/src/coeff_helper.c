@@ -8,11 +8,6 @@
 
 #define SQRT_FOURPI 3.544907701811031
 
-// double cc_phi_nlm(double s, double phi, double X, int n, int l, int m) {
-//     // Actually, same as phi_nlm because combined m and -m terms
-//     return phi_nl(s, n, l) * gsl_sf_legendre_sphPlm(l, m, X);
-// }
-
 double STnlm_integrand_help(double phi, double X, double xsi,
                             double density, int n, int l, int m) {
     /*
