@@ -8,11 +8,10 @@
 
 #define SQRT_FOURPI 3.544907701811031
 
-double cc_phi_nlm(double s, double phi, double X, int n, int l, int m) {
-    /* Complex conjugate of phi_nlm */
-    double tmp = pow(-1.,m) * gsl_sf_fact(l-m) / gsl_sf_fact(l+m);
-    return phi_nl(s, n, l) * tmp * gsl_sf_legendre_Plm(l, m, X) / SQRT_FOURPI;
-}
+// double cc_phi_nlm(double s, double phi, double X, int n, int l, int m) {
+//     // Actually, same as phi_nlm because combined m and -m terms
+//     return phi_nl(s, n, l) * gsl_sf_legendre_sphPlm(l, m, X);
+// }
 
 double STnlm_integrand_help(double phi, double X, double xsi,
                             double density, int n, int l, int m) {
@@ -26,11 +25,11 @@ double STnlm_integrand_help(double phi, double X, double xsi,
         * xsi: (s-1)/(s+1), a radial coordinate mapped to the interval
             [-1,1] rather than [0,inf].
     */
-    double _tmp = (1 - xsi);
-    double s = (1 + xsi) / _tmp;
+    double s = (1 + xsi) / (1 - xsi);
+    double sinth = sqrt(1 - X*X);
 
     // temporary variables
-    double Knl, Anl, krond, _tmp2;
+    double Knl, Anl_til, krond, numer, denom, ds;
 
     Knl = 0.5*n*(n + 4*l + 3) + (l + 1)*(2*l + 1);
     if (m == 0) {
@@ -39,11 +38,13 @@ double STnlm_integrand_help(double phi, double X, double xsi,
         krond = 0.;
     }
 
-    _tmp2 = (gsl_sf_gamma(n + 4*l + 3) / (gsl_sf_fact(n) * (n + 2*l + 1.5) * pow(gsl_sf_gamma(2*l + 1.5),2)));
-    Anl = 1/(Knl / pow(2., 8*l+6) * _tmp2 * (1 + krond) * M_PI * 2./(2*l+1.) * gsl_sf_fact(l+m) / gsl_sf_fact(l-m));
-    // Anl = (-pow(2., 8*l+6) / (Knl * 4*M_PI) *
-    //        (gsl_sf_fact(n) * (n + 2*l + 1.5) * pow(gsl_sf_gamma(2*l + 1.5),2)) / gsl_sf_gamma(n+4*l+3));
-    return -2. / (_tmp*_tmp) * s*s * cc_phi_nlm(s, phi, X, n, l, m) * Anl * density;
+    numer = gsl_sf_fact(n) * (n + 2*l + 1.5) * pow(gsl_sf_gamma(2*l + 1.5),2);
+    denom = gsl_sf_gamma(n + 4*l + 3);
+    Anl_til = -(pow(2., 8*l+6) / (4*M_PI*Knl)) * numer / denom;
+
+    ds = s*s*(s+1)*(s+1) / 2; // change of variables ds -> dxsi
+    return (2 - krond) * phi_nlm(s, phi, X, n, l, m) * Anl_til * density * ds;
+
 }
 
 extern double c_Snlm_integrand(double phi, double X, double xsi,
