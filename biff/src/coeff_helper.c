@@ -55,7 +55,7 @@ extern double c_Tnlm_integrand(double phi, double X, double xsi,
 extern void c_STnlm_discrete(double *s, double *phi, double *X, double *m_k, int K,
                              int n, int l, int m, double *ST) {
     // temporary variables
-    double Knl, Anl_til, krond, numer, denom, coeff;
+    double Knl, Anl_til, krond, numer, denom, coeff, _tmp;
 
     Knl = 0.5*n*(n + 4*l + 3) + (l + 1)*(2*l + 1);
     if (m == 0) {
