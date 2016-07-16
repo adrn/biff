@@ -29,9 +29,8 @@ env:
         # so Cython is required for testing. If your package does not include
         # Cython code, you can set CONDA_DEPENDENCIES=''
         - CONDA_CHANNELS="${CONDA_CHANNELS} https://conda.anaconda.org/asmeurer"
-        - CONDA_DEPENDENCIES='cython jinja2 scipy matplotlib==1.5.0 gsl'
+        - CONDA_DEPENDENCIES='cython jinja2 scipy matplotlib gsl'
         - PIP_DEPENDENCIES='astro-gala'
-        # HACK: matplotlib version until 1.5.2 comes out
         - C_INCLUDE_PATH="/home/travis/miniconda/envs/test/include/"
 
     matrix:
