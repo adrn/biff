@@ -269,7 +269,7 @@ cdef class SCFWrapper(CPotentialWrapper):
 
 class SCFPotential(CPotentialBase):
     r"""
-    SCFPotential(m, r_s, Snlm, Tnlm, units)
+    SCFPotential(m, r_s, Snlm, Tnlm, units=None)
 
     An SCF / basis function expansion potential. Follows the
     convention used in Hernquist & Ostriker (1992) and
@@ -297,7 +297,7 @@ class SCFPotential(CPotentialBase):
         length, mass, time, and angle units.
 
     """
-    def __init__(self, m, r_s, Snlm, Tnlm, units=galactic):
+    def __init__(self, m, r_s, Snlm, Tnlm, units=None):
         Snlm = np.array(Snlm)
         Tnlm = np.array(Tnlm)
 
