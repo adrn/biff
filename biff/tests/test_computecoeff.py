@@ -187,15 +187,15 @@ def test_flattened_hernquist():
     np.random.seed(42)
     n_test = 1024
     r = 10.*np.cbrt(np.random.uniform(0.1**3,1,size=n_test)) # 1 to 10
-    θ = np.arccos(2*np.random.uniform(size=n_test) - 1)
-    φ = np.random.uniform(0, 2*np.pi, size=n_test)
-    x = r*np.cos(φ)*np.sin(θ)
-    y = r*np.sin(φ)*np.sin(θ)
-    z = r*np.cos(θ)
+    t = np.arccos(2*np.random.uniform(size=n_test) - 1)
+    ph = np.random.uniform(0, 2*np.pi, size=n_test)
+    x = r*np.cos(ph)*np.sin(t)
+    y = r*np.sin(ph)*np.sin(t)
+    z = r*np.cos(t)
     xyz = np.vstack((x, y, z))
 
     # confirmed by testing...
-    tru_dens = flattened_hernquist_density(*xyz, M, a, q)
+    tru_dens = flattened_hernquist_density(xyz[0], xyz[1], xyz[2], M, a, q)
     bfe_dens = density(np.ascontiguousarray(xyz.T), Snlm, Tnlm, nmax, lmax, M, a)
     assert np.all((np.abs(bfe_dens - tru_dens) / tru_dens) < 0.05) # <5%
 
@@ -236,7 +236,7 @@ def test_flattened_hernquist():
     fig.colorbar(c, ticks=tickloc, format='%.0e')
     fig.tight_layout()
 
-    # contour plot in r,θ at φ=0
+    # contour plot in r,t at ph=0
 
     rgrid = np.logspace(-1, 1., 128)
     tgrid = np.linspace(0, np.pi, 128)
@@ -252,10 +252,10 @@ def test_flattened_hernquist():
     fig,ax = pl.subplots(1, 1, figsize=(8,8))
 
     levels = 10**np.linspace(-4.5, 1, 16)
-    ax.contour(np.log10(r), θ, true_dens.reshape(x.shape),
+    ax.contour(np.log10(r), t, true_dens.reshape(x.shape),
                levels=levels, colors='k',
                locator=mpl.ticker.LogLocator(), label='True')
-    ax.contour(np.log10(r), θ, bfe_dens.reshape(x.shape),
+    ax.contour(np.log10(r), t, bfe_dens.reshape(x.shape),
                levels=levels, colors='r',
                locator=mpl.ticker.LogLocator(), label='BFE')
 
