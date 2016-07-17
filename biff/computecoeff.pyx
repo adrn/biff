@@ -4,6 +4,8 @@
 # cython: cdivision=True
 # cython: wraparound=False
 # cython: profile=False
+# cython: linetrace=True
+# distutils: define_macros=CYTHON_TRACE=1
 
 """ THIS IS A THIN WRAPPER AROUND THE FUNCTIONS IN coeff_helper.c """
 
