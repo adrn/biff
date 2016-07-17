@@ -239,15 +239,15 @@ def test_flattened_hernquist():
     # contour plot in r,θ at φ=0
 
     rgrid = np.logspace(-1, 1., 128)
-    θgrid = np.linspace(0, np.pi, 128)
+    tgrid = np.linspace(0, np.pi, 128)
 
-    r,θ = np.meshgrid(rgrid,θgrid)
-    x = r*np.sin(θ)
-    z = r*np.cos(θ)
+    r,t = np.meshgrid(rgrid,tgrid)
+    x = r*np.sin(t)
+    z = r*np.cos(t)
 
     _xyz = np.vstack((x.ravel(),np.zeros_like(x.ravel()),z.ravel()))
     bfe_dens = density(np.ascontiguousarray(_xyz.T), Snlm, Tnlm, nmax, lmax, M, a)
-    true_dens = flattened_hernquist_density(*_xyz, M, a, q)
+    true_dens = flattened_hernquist_density(_xyz[0], _xyz[1], _xyz[2], M, a, q)
 
     fig,ax = pl.subplots(1, 1, figsize=(8,8))
 
