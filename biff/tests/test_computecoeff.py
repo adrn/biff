@@ -199,7 +199,7 @@ def test_flattened_hernquist():
     bfe_dens = density(np.ascontiguousarray(xyz.T), Snlm, Tnlm, nmax, lmax, M, a)
     assert np.all((np.abs(bfe_dens - tru_dens) / tru_dens) < 0.05) # <5%
 
-    tru_grad = np.array([flattened_hernquist_gradient(*xyz[:,i], G, M, a, q)
+    tru_grad = np.array([flattened_hernquist_gradient(xyz[0,i], xyz[1,i], xyz[2,i], G, M, a, q)
                         for i in range(xyz.shape[1])]).T
     bfe_grad = gradient(np.ascontiguousarray(xyz.T), Snlm, Tnlm, nmax, lmax, G, M, a).T
 
