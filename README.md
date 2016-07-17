@@ -3,7 +3,7 @@ Biff
 
 Basis Function Expansions of gravitational potentials.
 
-[![Coverage Status](https://coveralls.io/repos/github/adrn/biff/badge.svg?branch=master)](https://coveralls.io/github/adrn/biff?branch=master
+[![Coverage Status](https://coveralls.io/repos/github/adrn/biff/badge.svg?branch=master)](https://coveralls.io/github/adrn/biff?branch=master)
 [![Build status](http://img.shields.io/travis/adrn/biff/master.svg?style=flat)](http://travis-ci.org/adrn/biff)
 [![License](http://img.shields.io/badge/license-MIT-blue.svg?style=flat)](https://github.com/adrn/biff/blob/master/LICENSE)
 <!-- [![PyPI](https://badge.fury.io/py/astro-gala.svg)](https://badge.fury.io/py/astro-gala) -->
