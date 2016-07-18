@@ -69,6 +69,9 @@ exclude_patterns.append('_templates')
 rst_epilog += """
 """
 
+# Add sympy to intersphinx mapping
+intersphinx_mapping['gala'] = ('http://gala.adrian.pw/en/latest/', None)
+
 # -- Project information ------------------------------------------------------
 
 # This does not *have* to match the package name, but typically does
@@ -93,6 +96,12 @@ release = package.__version__
 # -- Options for HTML output ---------------------------------------------------
 
 # A NOTE ON HTML THEMES
+html_theme_options = {
+    'logotext1': '',  # white,  semi-bold
+    'logotext2': 'Biff',  # red, light
+    'logotext3': ':docs'   # white,  light
+}
+
 # The global astropy configuration uses a custom theme, 'bootstrap-astropy',
 # which is installed along with astropy. A different theme can be used or
 # the options for this theme can be modified by overriding some of the
@@ -114,7 +123,8 @@ release = package.__version__
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
 # pixels large.
-#html_favicon = ''
+path = os.path.abspath(os.path.join(os.path.dirname(__file__), '_static'))
+html_favicon = os.path.join(path, 'sphharm.ico')
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
@@ -126,6 +136,10 @@ html_title = '{0} v{1}'.format(project, release)
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = project + 'doc'
+
+# Static files to copy after template files
+html_static_path = ['_static']
+html_style = 'custom.css'
 
 
 # -- Options for LaTeX output --------------------------------------------------
@@ -158,3 +172,6 @@ if eval(setup_cfg.get('edit_on_github')):
 
     edit_on_github_source_root = ""
     edit_on_github_doc_root = "docs"
+
+# show inherited members for classes
+automodsumm_inherited_members = True
