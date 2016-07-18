@@ -2,6 +2,7 @@ name: biff
 
 channels:
   - astropy
+  - asmeurer
 
 dependencies:
   - astropy-helpers
@@ -10,5 +11,6 @@ dependencies:
   - matplotlib
   - scipy
   - pyyaml
+  - gsl
   - pip:
       - astro-gala
