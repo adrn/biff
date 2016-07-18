@@ -1,23 +1,27 @@
 # Licensed under a 3-clause BSD style license - see PYFITS.rst
 from __future__ import absolute_import
 
-import os
+from os.path import join, split, abspath
 from distutils.core import Extension
+from distutils.sysconfig import get_python_inc
 from astropy_helpers import setup_helpers
 
 def get_extensions():
 
     try:
-        # Get gala path
+        # Get gala path -- for egg_info build
         import gala
-        gala_base_path = os.path.split(gala.__file__)[0]
-        gala_path = os.path.join(gala_base_path, 'potential')
+        gala_base_path = split(gala.__file__)[0]
+        gala_path = join(gala_base_path, 'potential')
     except ImportError:
         gala_path = None
+
+    py_include = abspath(join(get_python_inc(),".."))
 
     coeff_cfg = setup_helpers.DistutilsExtensionArgs()
     coeff_cfg['include_dirs'].append('numpy')
     coeff_cfg['include_dirs'].append('biff/src')
+    coeff_cfg['include_dirs'].append(py_include) # for gsl
     coeff_cfg['sources'].append('biff/computecoeff.pyx')
     coeff_cfg['sources'].append('biff/src/bfe_helper.c')
     # coeff_cfg['sources'].append('biff/src/coeff_helper.c')
@@ -29,6 +33,7 @@ def get_extensions():
     if gala_path is not None:
         bfe_cfg['include_dirs'].append(gala_path)
     bfe_cfg['include_dirs'].append('biff/src')
+    bfe_cfg['include_dirs'].append(py_include) # for gsl
     bfe_cfg['sources'].append('biff/bfe.pyx')
     bfe_cfg['sources'].append('biff/src/bfe.c')
     bfe_cfg['sources'].append('biff/src/bfe_helper.c')
