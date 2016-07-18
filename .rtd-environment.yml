@@ -11,6 +11,6 @@ dependencies:
   - matplotlib
   - scipy
   - pyyaml
-  - gsl
+  - gsl=1.16
   - pip:
       - astro-gala
