@@ -23,7 +23,7 @@ def get_extensions():
     coeff_cfg['include_dirs'].append('numpy')
     coeff_cfg['include_dirs'].append('biff/src')
     coeff_cfg['include_dirs'].append(py_inc) # for gsl
-    coeff_cfg['library_dirs'].append(py_lib) # for gsl
+    # coeff_cfg['library_dirs'].append(py_lib) # for gsl
     coeff_cfg['sources'].append('biff/computecoeff.pyx')
     coeff_cfg['sources'].append('biff/src/bfe_helper.c')
     # coeff_cfg['sources'].append('biff/src/coeff_helper.c')
@@ -36,7 +36,7 @@ def get_extensions():
         bfe_cfg['include_dirs'].append(gala_path)
     bfe_cfg['include_dirs'].append('biff/src')
     bfe_cfg['include_dirs'].append(py_inc) # for gsl
-    bfe_cfg['library_dirs'].append(py_lib) # for gsl
+    # bfe_cfg['library_dirs'].append(py_lib) # for gsl
     bfe_cfg['sources'].append('biff/bfe.pyx')
     bfe_cfg['sources'].append('biff/src/bfe.c')
     bfe_cfg['sources'].append('biff/src/bfe_helper.c')

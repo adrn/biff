@@ -96,7 +96,7 @@ def compute_coeffs(density_func, nlm, M, r_s, args=(), **nquad_opts):
                                          args=(density_func, n, l, m, M, r_s, args),
                                          opts=nquad_opts)
 
-            return (Snlm,Snlm_e), (Tnlm,Tnlm_e)
+        return (Snlm,Snlm_e), (Tnlm,Tnlm_e)
 
     else:
         raise ValueError("'nlm' must be 1- or 2-dimensional, not {}-dimensional".format(nlm.ndim))
