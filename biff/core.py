@@ -13,32 +13,26 @@ from ._computecoeff import Snlm_integrand, Tnlm_integrand, STnlm_discrete
 
 __all__ = ['compute_coeffs', 'compute_coeffs_discrete']
 
-def compute_coeffs(density_func, nlm, M, r_s, args=(), **kwargs):
+def compute_coeffs(density_func, nlm, M, r_s, args=(), **nquad_opts):
     """
-    Compute the expansion coefficients for representing the input
-    density function as a basis function expansion.
+    Compute the expansion coefficients for representing the input density function using a basis
+    function expansion.
 
-    This is largely based on the formalism outlined in
-    Hernquist & Ostriker (1992). The radial basis functions
-    are taken to be Hernquist functions.
-
-    Computing the coefficients involves computing triple integrals
-    which are computationally expensive. For an example of how to
-    parallelize the computation of the coefficients, see
+    Computing the coefficients involves computing triple integrals which are computationally
+    expensive. For an example of how to parallelize the computation of the coefficients, see
     ``examples/parallel_compute_Anlm.py``.
 
     Parameters
     ----------
     density_func : function, callable
-        A function or callable object to evaluate the density at a
-        given position. The call format must be of the form:
-        ``density_func(x, y, z, M, r_s, args)`` where ``x,y,z`` are
-        cartesian coordinates, ``M`` is a scale mass, ``r_s`` a scale
-        radius, and ``args`` is an iterable containing any other
-        arguments needed by the density function.
-    nlm : iterable
-        A list or iterable of integers containing the values of n, l,
-        and m, e.g., ``nlm = [n,l,m]``.
+        A function or callable object that evaluates the density at a given position. The call
+        format must be of the form: ``density_func(x, y, z, M, r_s, args)`` where ``x,y,z`` are
+        cartesian coordinates, ``M`` is a scale mass, ``r_s`` a scale radius, and ``args`` is an
+        iterable containing any other arguments needed by the density function.
+    nlm : array_like
+        An array or iterable of integers containing the values of n, l, m, e.g., ``nlm = [n,l,m]``.
+        If this is 2-dimensional, assumes that each row is an ``nlm`` triplet, e.g.,
+        ``nlm.shape[1] == 3``.
     M : numeric
         Scale mass.
     r_s : numeric
@@ -46,66 +40,88 @@ def compute_coeffs(density_func, nlm, M, r_s, args=(), **kwargs):
     args : iterable (optional)
         A list or iterable of any other arguments needed by the density
         function.
-
-    kwargs
+    **nquad_opts
         Any additional keyword arguments are passed through to
         `~scipy.integrate.nquad` as options, `opts`.
 
     Returns
     -------
-    Snlm : float
+    Snlm : float, `~numpy.ndarray`
         The value of the cosine expansion coefficient.
-    Snlm_err : float
-        An estimate of the uncertainty in the coefficient value.
-    Tnlm : float
+    Snlm_err : , `~numpy.ndarray`
+        An estimate of the uncertainty in the coefficient value (from `~scipy.integrate.nquad`).
+    Tnlm : , `~numpy.ndarray`
         The value of the sine expansion coefficient.
-    Tnlm_err : float
-        An estimate of the uncertainty in the coefficient value.
+    Tnlm_err : , `~numpy.ndarray`
+        An estimate of the uncertainty in the coefficient value. (from `~scipy.integrate.nquad`).
 
     """
     nlm = np.array(nlm).astype(np.int32)
 
-    kwargs.setdefault('limit', 256)
-    kwargs.setdefault('epsrel', 1E-10)
+    nquad_opts.setdefault('limit', 256)
+    nquad_opts.setdefault('epsrel', 1E-10)
 
     limits = [[0,2*np.pi], # phi
               [-1,1.], # X (cos(theta))
               [-1,1.]] # xsi
 
-    Snlm = si.nquad(Snlm_integrand,
-                    ranges=limits,
-                    args=(density_func, nlm[0], nlm[1], nlm[2], M, r_s, args),
-                    opts=kwargs)
+    if nlm.ndim == 1:
+        Snlm = si.nquad(Snlm_integrand,
+                        ranges=limits,
+                        args=(density_func, nlm[0], nlm[1], nlm[2], M, r_s, args),
+                        opts=nquad_opts)
 
-    Tnlm = si.nquad(Tnlm_integrand,
-                    ranges=limits,
-                    args=(density_func, nlm[0], nlm[1], nlm[2], M, r_s, args),
-                    opts=kwargs)
+        Tnlm = si.nquad(Tnlm_integrand,
+                        ranges=limits,
+                        args=(density_func, nlm[0], nlm[1], nlm[2], M, r_s, args),
+                        opts=nquad_opts)
 
-    return Snlm, Tnlm
+        return Snlm, Tnlm
+
+    elif nlm.ndim == 2:
+        _size = nlm.shape[0]
+        Snlm = np.zeros(_size)
+        Snlm_e = np.zeros(_size)
+        Tnlm = np.zeros(_size)
+        Tnlm_e = np.zeros(_size)
+
+        for i,(n,l,m) in enumerate(nlm):
+            Snlm[i],Snlm_e[i] = si.nquad(Snlm_integrand,
+                                         ranges=limits,
+                                         args=(density_func, n, l, m, M, r_s, args),
+                                         opts=nquad_opts)
+
+            Tnlm[i],Tnlm_e[i] = si.nquad(Tnlm_integrand,
+                                         ranges=limits,
+                                         args=(density_func, n, l, m, M, r_s, args),
+                                         opts=nquad_opts)
+
+            return (Snlm,Snlm_e), (Tnlm,Tnlm_e)
+
+    else:
+        raise ValueError("'nlm' must be 1- or 2-dimensional, not {}-dimensional".format(nlm.ndim))
+
 
 def compute_coeffs_discrete(xyz, mass, nlm, r_s):
     """
-    Compute the expansion coefficients for representing the input
-    density function as a basis function expansion.
+    Compute the expansion coefficients for representing the density distribution of input points
+    as a basis function expansion. The points, ``xyz``, are assumed to be samples from the
+    density distribution.
 
-    This is largely based on the formalism outlined in
-    Hernquist & Ostriker (1992). The radial basis functions
-    are taken to be Hernquist functions.
-
-    Computing the coefficients involves computing triple integrals
-    which are computationally expensive. For an example of how to
-    parallelize the computation of the coefficients, see
+    Computing the coefficients involves computing triple integrals which are computationally
+    expensive. For an example of how to parallelize the computation of the coefficients, see
     ``examples/parallel_compute_Anlm.py``.
 
     Parameters
     ----------
     xyz : array_like
+        Samples from the density distribution. Should have shape ``(n_samples,3)``.
     mass : array_like
-        Mass of each discrete object.
-    nlm : iterable
-        A list or iterable of integers containing the values of n, l,
-        and m, e.g., ``nlm = [n,l,m]``.
+        Mass of each sample. Should have shape ``(n_samples,)``.
+    nlm : array_like
+        An array or iterable of integers containing the values of n, l, m, e.g., ``nlm = [n,l,m]``.
+        If this is 2-dimensional, assumes that each row is an ``nlm`` triplet, e.g.,
+        ``nlm.shape[1] == 3``.
     r_s : numeric
         Scale radius.
 
@@ -121,13 +137,24 @@ def compute_coeffs_discrete(xyz, mass, nlm, r_s):
     mass = np.ascontiguousarray(np.atleast_1d(mass))
 
     nlm = np.array(nlm).astype(np.int32)
-    # _args = np.array(args)arrayxyz =
 
     r = np.sqrt(np.sum(xyz**2, axis=-1))
     s = r / r_s
     phi = np.arctan2(xyz[:,1], xyz[:,0])
     X = xyz[:,2] / r
 
-    Snlm, Tnlm = STnlm_discrete(s, phi, X, mass, nlm[0], nlm[1], nlm[2])
+    if nlm.ndim == 1:
+        Snlm, Tnlm = STnlm_discrete(s, phi, X, mass, nlm[0], nlm[1], nlm[2])
+
+    elif nlm.ndim == 2:
+        _size = nlm.shape[0]
+        Snlm = np.zeros(_size)
+        Tnlm = np.zeros(_size)
+
+        for i,(n,l,m) in enumerate(nlm):
+            Snlm[i], Tnlm[i] = STnlm_discrete(s, phi, X, mass, nlm[0], nlm[1], nlm[2])
+
+    else:
+        raise ValueError("'nlm' must be 1- or 2-dimensional, not {}-dimensional".format(nlm.ndim))
 
     return Snlm, Tnlm
