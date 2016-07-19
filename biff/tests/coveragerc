@@ -29,6 +29,3 @@ exclude_lines =
 
    # Ignore branches that don't pertain to this version of Python
    pragma: py{ignore_python_version}
-
-   # Cython coverage
-   plugins = Cython.Coverage
