@@ -122,7 +122,7 @@ cpdef potential(double[:,::1] xyz,
                 double[:,:,::1] Snlm, double[:,:,::1] Tnlm,
                 double G=1., double M=1., double r_s=1.):
     """
-    potential(xyz, Snlm, Tnlm, nmax, lmax, G=1, M=1, r_s=1)
+    potential(xyz, Snlm, Tnlm, G=1, M=1, r_s=1)
 
     Compute the gravitational potential of the basis function expansion
     at a set of positions given the expansion coefficients.
@@ -173,7 +173,7 @@ cpdef gradient(double[:,::1] xyz,
                double[:,:,::1] Snlm, double[:,:,::1] Tnlm,
                double G=1, double M=1, double r_s=1):
     """
-    gradient(xyz, Snlm, Tnlm, nmax, lmax, G=1, M=1, r_s=1)
+    gradient(xyz, Snlm, Tnlm, G=1, M=1, r_s=1)
 
     Compute the gradient of the gravitational potential of the
     basis function expansion at a set of positions given the
