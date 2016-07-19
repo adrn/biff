@@ -31,7 +31,9 @@ def compute_coeffs(density_func, nmax, lmax, M, r_s, args=(),
         cartesian coordinates, ``M`` is a scale mass, ``r_s`` a scale radius, and ``args`` is an
         iterable containing any other arguments needed by the density function.
     nmax : int
+        Maximum value of ``n`` for the radial expansion.
     lmax : int
+        Maximum value of ``l`` for the spherical harmonics.
     M : numeric
         Scale mass.
     r_s : numeric
@@ -39,6 +41,14 @@ def compute_coeffs(density_func, nmax, lmax, M, r_s, args=(),
     args : iterable (optional)
         A list or iterable of any other arguments needed by the density
         function.
+    skip_odd : bool (optional)
+        Skip the odd terms in the angular portion of the expansion. For example, only
+        take :math:`l=0,2,4,...`
+    skip_even : bool (optional)
+        Skip the even terms in the angular portion of the expansion. For example, only
+        take :math:`l=1,3,5,...`
+    skip_m : bool (optional)
+        Ignore terms with :math:`m > 0`.
     **nquad_opts
         Any additional keyword arguments are passed through to
         `~scipy.integrate.nquad` as options, `opts`.
@@ -93,7 +103,8 @@ def compute_coeffs(density_func, nmax, lmax, M, r_s, args=(),
 
     return (Snlm,Snlm_e), (Tnlm,Tnlm_e)
 
-def compute_coeffs_discrete(xyz, mass, nlm, r_s):
+def compute_coeffs_discrete(xyz, mass, nmax, lmax, r_s,
+                            skip_odd=False, skip_even=False, skip_m=False):
     """
     Compute the expansion coefficients for representing the density distribution of input points
     as a basis function expansion. The points, ``xyz``, are assumed to be samples from the
@@ -109,12 +120,20 @@ def compute_coeffs_discrete(xyz, mass, nlm, r_s):
         Samples from the density distribution. Should have shape ``(n_samples,3)``.
     mass : array_like
         Mass of each sample. Should have shape ``(n_samples,)``.
-    nlm : array_like
-        An array or iterable of integers containing the values of n, l, m, e.g., ``nlm = [n,l,m]``.
-        If this is 2-dimensional, assumes that each row is an ``nlm`` triplet, e.g.,
-        ``nlm.shape[1] == 3``.
+    nmax : int
+        Maximum value of ``n`` for the radial expansion.
+    lmax : int
+        Maximum value of ``l`` for the spherical harmonics.
     r_s : numeric
         Scale radius.
+    skip_odd : bool (optional)
+        Skip the odd terms in the angular portion of the expansion. For example, only
+        take :math:`l=0,2,4,...`
+    skip_even : bool (optional)
+        Skip the even terms in the angular portion of the expansion. For example, only
+        take :math:`l=1,3,5,...`
+    skip_m : bool (optional)
+        Ignore terms with :math:`m > 0`.
 
     Returns
     -------
