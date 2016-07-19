@@ -168,8 +168,6 @@ def compute_coeffs_discrete(xyz, mass, nmax, lmax, r_s,
         for l in range(lmin, lmax+1, lstride):
             for m in range(l+1):
                 if skip_m and m > 0: continue
-
-                Snlm[n,l,m], Tnlm[n,l,m] = STnlm_discrete(s, phi, X, mass,
-                                                          nlm[0], nlm[1], nlm[2])
+                Snlm[n,l,m], Tnlm[n,l,m] = STnlm_discrete(s, phi, X, mass, n, l, m)
 
     return Snlm, Tnlm

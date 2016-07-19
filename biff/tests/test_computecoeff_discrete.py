@@ -33,18 +33,7 @@ def test_plummer():
     nmax = 10
     lmax = 0
 
-    nlms = []
-    for n in range(nmax+1):
-        for l in range(lmax+1):
-            for m in range(l+1):
-                nlms.append([n,l,m])
-
-    Snlm = np.zeros((nmax+1,lmax+1,lmax+1))
-    Tnlm = np.zeros((nmax+1,lmax+1,lmax+1))
-
-    for nlm in nlms:
-        n,l,m = nlm
-        Snlm[n,l,m],Tnlm[n,l,m] = compute_coeffs_discrete(xyz, m_k, nlm, r_s=r_s)
+    Snlm,Tnlm = compute_coeffs_discrete(xyz, m_k, nmax=nmax, lmax=lmax, r_s=r_s)
 
     x = np.logspace(-2,1,512)
     xyz = np.zeros((len(x),3))
