@@ -30,7 +30,8 @@ def hernquist_density(x, y, z, M, r_s):
 def test_hernquist():
     for M in [1E5, 1E10]:
         for r_s in np.logspace(-1,2,4):
-            (S,Serr),(T,Terr) = compute_coeffs(hernquist_density, nlm=[0,0,0], M=M, r_s=r_s, args=(M, r_s))
+            (S,Serr),(T,Terr) = compute_coeffs(hernquist_density, nmax=0, lmax=0,
+                                               M=M, r_s=r_s, args=(M, r_s))
 
             np.testing.assert_allclose(S, 1.)
             np.testing.assert_allclose(Serr, 0., atol=1E-10)
@@ -60,31 +61,13 @@ def test_plummer():
     nmax = 16
     lmax = 0
 
-    Snlm = np.zeros((nmax+1,lmax+1,lmax+1))
-    Serr = np.zeros((nmax+1,lmax+1,lmax+1))
-    Tnlm = np.zeros((nmax+1,lmax+1,lmax+1))
-    Terr = np.zeros((nmax+1,lmax+1,lmax+1))
+    (S,S_err),(T,T_err) = compute_coeffs(_plummer_density, nmax=nmax, lmax=lmax,
+                                         M=true_M, r_s=true_r_s, args=(true_M,true_r_s),
+                                         epsrel=1E-9)
 
-    nlms = []
-    for n in range(nmax+1):
-        for l in range(lmax+1):
-            for m in range(l+1):
-                nlms.append([n,l,m])
-
-    for nlm in nlms:
-        n,l,m = nlm
-        print(n,l,m)
-        (S,S_err),(T,T_err) = compute_coeffs(_plummer_density, nlm=nlm,
-                                             M=true_M, r_s=true_r_s, args=(true_M,true_r_s),
-                                             epsrel=1E-9)
-        Snlm[n,l,m] = S
-        Serr[n,l,m] = S_err
-        Tnlm[n,l,m] = T
-        Terr[n,l,m] = T_err
-
-    bfe_dens = density(xyz, Snlm, Tnlm, true_M, true_r_s)
-    bfe_pot = potential(xyz, Snlm, Tnlm, G, true_M, true_r_s)
-    bfe_grad = gradient(xyz, Snlm, Tnlm, G, true_M, true_r_s)
+    bfe_dens = density(xyz, S, T, true_M, true_r_s)
+    bfe_pot = potential(xyz, S, T, G, true_M, true_r_s)
+    bfe_grad = gradient(xyz, S, T, G, true_M, true_r_s)
 
     # fig,axes = pl.subplots(3, 1, figsize=(6,12), sharex=True)
 
@@ -155,33 +138,19 @@ def test_flattened_hernquist():
     nmax = 8
     lmax = 8
 
-    Snlm = np.zeros((nmax+1,lmax+1,lmax+1)) + np.nan
-    Snlm_e = np.zeros((nmax+1,lmax+1,lmax+1)) + np.nan
-    Tnlm = np.zeros((nmax+1,lmax+1,lmax+1)) + np.nan
-    Tnlm_e = np.zeros((nmax+1,lmax+1,lmax+1)) + np.nan
-    for n in range(nmax+1):
-        for l in range(0,lmax+1,2): # only even l
-            # Ignoring m because m > 0 not relevant for axisymmetric
-            m = 0
-            print(n,l,m)
-            nlm = [n,l,m]
-            (S,Serr),(T,Terr) = compute_coeffs(flattened_hernquist_density,
-                                               nlm=nlm,
-                                               M=M, r_s=a,
-                                               args=(M,a,q))
-            Snlm[n,l,m] = S
-            Snlm_e[n,l,m] = Serr
-            Tnlm[n,l,m] = T
-            Tnlm_e[n,l,m] = Terr
+    (Snlm,Serr),(Tnlm,Terr) = compute_coeffs(flattened_hernquist_density,
+                                             nmax=nmax, lmax=lmax, skip_odd=True, skip_m=True,
+                                             M=M, r_s=a, args=(M,a,q))
+
+    for l in range(1, lmax+1, 2):
+        for m in range(lmax+1):
+            assert Snlm[0,l,m] == 0.
 
     coeff_path = os.path.abspath(get_pkg_data_filename('../data/Snlm-mathematica.csv'))
     m_Snl0 = np.loadtxt(coeff_path, delimiter=',')
     m_Snl0 = m_Snl0[:,::2] # every other l
 
     assert np.allclose(Snlm[0,::2,0], m_Snl0[0])
-
-    Snlm[np.isnan(Snlm)] = 0.
-    Tnlm[np.isnan(Tnlm)] = 0.
 
     # check that random points match in gradient and density
     np.random.seed(42)

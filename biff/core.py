@@ -13,7 +13,8 @@ from ._computecoeff import Snlm_integrand, Tnlm_integrand, STnlm_discrete
 
 __all__ = ['compute_coeffs', 'compute_coeffs_discrete']
 
-def compute_coeffs(density_func, nlm, M, r_s, args=(), **nquad_opts):
+def compute_coeffs(density_func, nmax, lmax, M, r_s, args=(),
+                   skip_odd=False, skip_even=False, skip_m=False, **nquad_opts):
     """
     Compute the expansion coefficients for representing the input density function using a basis
     function expansion.
@@ -29,10 +30,8 @@ def compute_coeffs(density_func, nlm, M, r_s, args=(), **nquad_opts):
         format must be of the form: ``density_func(x, y, z, M, r_s, args)`` where ``x,y,z`` are
         cartesian coordinates, ``M`` is a scale mass, ``r_s`` a scale radius, and ``args`` is an
         iterable containing any other arguments needed by the density function.
-    nlm : array_like
-        An array or iterable of integers containing the values of n, l, m, e.g., ``nlm = [n,l,m]``.
-        If this is 2-dimensional, assumes that each row is an ``nlm`` triplet, e.g.,
-        ``nlm.shape[1] == 3``.
+    nmax : int
+    lmax : int
     M : numeric
         Scale mass.
     r_s : numeric
@@ -56,7 +55,19 @@ def compute_coeffs(density_func, nlm, M, r_s, args=(), **nquad_opts):
         An estimate of the uncertainty in the coefficient value. (from `~scipy.integrate.nquad`).
 
     """
-    nlm = np.array(nlm).astype(np.int32)
+    lmin = 0
+    lstride = 1
+
+    if skip_odd or skip_even:
+        lstride = 2
+
+    if skip_even:
+        lmin = 1
+
+    Snlm = np.zeros((nmax+1, lmax+1, lmax+1))
+    Snlm_e = np.zeros((nmax+1, lmax+1, lmax+1))
+    Tnlm = np.zeros((nmax+1, lmax+1, lmax+1))
+    Tnlm_e = np.zeros((nmax+1, lmax+1, lmax+1))
 
     nquad_opts.setdefault('limit', 256)
     nquad_opts.setdefault('epsrel', 1E-10)
@@ -65,42 +76,22 @@ def compute_coeffs(density_func, nlm, M, r_s, args=(), **nquad_opts):
               [-1,1.], # X (cos(theta))
               [-1,1.]] # xsi
 
-    if nlm.ndim == 1:
-        Snlm = si.nquad(Snlm_integrand,
-                        ranges=limits,
-                        args=(density_func, nlm[0], nlm[1], nlm[2], M, r_s, args),
-                        opts=nquad_opts)
+    for n in range(nmax+1):
+        for l in range(lmin, lmax+1, lstride):
+            for m in range(l+1):
+                if skip_m and m > 0: continue
 
-        Tnlm = si.nquad(Tnlm_integrand,
-                        ranges=limits,
-                        args=(density_func, nlm[0], nlm[1], nlm[2], M, r_s, args),
-                        opts=nquad_opts)
+                Snlm[n,l,m],Snlm_e[n,l,m] = si.nquad(Snlm_integrand,
+                                             ranges=limits,
+                                             args=(density_func, n, l, m, M, r_s, args),
+                                             opts=nquad_opts)
 
-        return Snlm, Tnlm
+                Tnlm[n,l,m],Tnlm_e[n,l,m] = si.nquad(Tnlm_integrand,
+                                             ranges=limits,
+                                             args=(density_func, n, l, m, M, r_s, args),
+                                             opts=nquad_opts)
 
-    elif nlm.ndim == 2:
-        _size = nlm.shape[0]
-        Snlm = np.zeros(_size)
-        Snlm_e = np.zeros(_size)
-        Tnlm = np.zeros(_size)
-        Tnlm_e = np.zeros(_size)
-
-        for i,(n,l,m) in enumerate(nlm):
-            Snlm[i],Snlm_e[i] = si.nquad(Snlm_integrand,
-                                         ranges=limits,
-                                         args=(density_func, n, l, m, M, r_s, args),
-                                         opts=nquad_opts)
-
-            Tnlm[i],Tnlm_e[i] = si.nquad(Tnlm_integrand,
-                                         ranges=limits,
-                                         args=(density_func, n, l, m, M, r_s, args),
-                                         opts=nquad_opts)
-
-        return (Snlm,Snlm_e), (Tnlm,Tnlm_e)
-
-    else:
-        raise ValueError("'nlm' must be 1- or 2-dimensional, not {}-dimensional".format(nlm.ndim))
-
+    return (Snlm,Snlm_e), (Tnlm,Tnlm_e)
 
 def compute_coeffs_discrete(xyz, mass, nlm, r_s):
     """
@@ -133,28 +124,33 @@ def compute_coeffs_discrete(xyz, mass, nlm, r_s):
         The value of the sine expansion coefficient.
 
     """
+    lmin = 0
+    lstride = 1
+
+    if skip_odd or skip_even:
+        lstride = 2
+
+    if skip_even:
+        lmin = 1
+
+    Snlm = np.zeros((nmax+1, lmax+1, lmax+1))
+    Tnlm = np.zeros((nmax+1, lmax+1, lmax+1))
+
+    # positions and masses of point masses
     xyz = np.ascontiguousarray(np.atleast_2d(xyz))
     mass = np.ascontiguousarray(np.atleast_1d(mass))
-
-    nlm = np.array(nlm).astype(np.int32)
 
     r = np.sqrt(np.sum(xyz**2, axis=-1))
     s = r / r_s
     phi = np.arctan2(xyz[:,1], xyz[:,0])
     X = xyz[:,2] / r
 
-    if nlm.ndim == 1:
-        Snlm, Tnlm = STnlm_discrete(s, phi, X, mass, nlm[0], nlm[1], nlm[2])
+    for n in range(nmax+1):
+        for l in range(lmin, lmax+1, lstride):
+            for m in range(l+1):
+                if skip_m and m > 0: continue
 
-    elif nlm.ndim == 2:
-        _size = nlm.shape[0]
-        Snlm = np.zeros(_size)
-        Tnlm = np.zeros(_size)
-
-        for i,(n,l,m) in enumerate(nlm):
-            Snlm[i], Tnlm[i] = STnlm_discrete(s, phi, X, mass, nlm[0], nlm[1], nlm[2])
-
-    else:
-        raise ValueError("'nlm' must be 1- or 2-dimensional, not {}-dimensional".format(nlm.ndim))
+                Snlm[n,l,m], Tnlm[n,l,m] = STnlm_discrete(s, phi, X, mass,
+                                                          nlm[0], nlm[1], nlm[2])
 
     return Snlm, Tnlm
