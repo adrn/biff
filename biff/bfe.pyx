@@ -70,10 +70,9 @@ __all__ = ['density', 'potential', 'gradient', 'SCFPotential']
 
 cpdef density(double[:,::1] xyz,
               double[:,:,::1] Snlm, double[:,:,::1] Tnlm,
-              int nmax, int lmax,
               double M=1., double r_s=1.):
     """
-    density(xyz, Snlm, Tnlm, nmax, lmax, M=1, r_s=1)
+    density(xyz, Snlm, Tnlm, M=1, r_s=1)
 
     Compute the density of the basis function expansion
     at a set of positions given the expansion coefficients.
@@ -93,10 +92,6 @@ cpdef density(double[:,::1] xyz,
         of the expansion. This notation follows Lowing et al. (2011).
         The array should have shape ``(nmax+1,lmax+1,lmax+1)`` and any
         invalid terms (e.g., when m > l) will be ignored.
-    nmax : int
-        Number of radial expansion terms.
-    lmax : int
-        Maximum ``l`` value for the spherical harmonics.
     M : numeric (optional)
         Mass scale. Leave unset for dimensionless units.
     r_s : numeric (optional)
@@ -108,18 +103,14 @@ cpdef density(double[:,::1] xyz,
         A 1D array of the density at each input position.
         Will have the same length as the input position array, ``xyz``.
 
-    TODOs
-    -----
-
-    * Rework this so it accepts an array of nlm's with the same
-        shape as the coefficients so the user doesn't always have to
-        pass in a full 3D array.
-
     """
 
     cdef:
         int ncoords = xyz.shape[0]
         double[::1] dens = np.zeros(ncoords)
+
+        int nmax = Snlm.shape[0]-1
+        int lmax = Snlm.shape[1]-1
 
     scf_density_helper(&xyz[0,0], ncoords, M, r_s,
                        &Snlm[0,0,0], &Tnlm[0,0,0],
@@ -129,7 +120,6 @@ cpdef density(double[:,::1] xyz,
 
 cpdef potential(double[:,::1] xyz,
                 double[:,:,::1] Snlm, double[:,:,::1] Tnlm,
-                int nmax, int lmax,
                 double G=1., double M=1., double r_s=1.):
     """
     potential(xyz, Snlm, Tnlm, nmax, lmax, G=1, M=1, r_s=1)
@@ -152,10 +142,6 @@ cpdef potential(double[:,::1] xyz,
         of the expansion. This notation follows Lowing et al. (2011).
         The array should have shape ``(nmax+1,lmax+1,lmax+1)`` and any
         invalid terms (e.g., when m > l) will be ignored.
-    nmax : int
-        Number of radial expansion terms.
-    lmax : int
-        Maximum ``l`` value for the spherical harmonics.
     G : numeric (optional)
         Gravitational constant. Leave unset for dimensionless units.
     M : numeric (optional)
@@ -169,17 +155,13 @@ cpdef potential(double[:,::1] xyz,
         A 1D array of the value of the potential at each input position.
         Will have the same length as the input position array, ``xyz``.
 
-    TODOs
-    -----
-
-    * Rework this so it accepts an array of nlm's with the same
-        shape as the coefficients so the user doesn't always have to
-        pass in a full 3D array.
-
     """
     cdef:
         int ncoords = xyz.shape[0]
         double[::1] potv = np.zeros(ncoords)
+
+        int nmax = Snlm.shape[0]-1
+        int lmax = Snlm.shape[1]-1
 
     scf_potential_helper(&xyz[0,0], ncoords, G, M, r_s,
                          &Snlm[0,0,0], &Tnlm[0,0,0],
@@ -189,7 +171,6 @@ cpdef potential(double[:,::1] xyz,
 
 cpdef gradient(double[:,::1] xyz,
                double[:,:,::1] Snlm, double[:,:,::1] Tnlm,
-               int nmax, int lmax,
                double G=1, double M=1, double r_s=1):
     """
     gradient(xyz, Snlm, Tnlm, nmax, lmax, G=1, M=1, r_s=1)
@@ -213,10 +194,6 @@ cpdef gradient(double[:,::1] xyz,
         of the expansion. This notation follows Lowing et al. (2011).
         The array should have shape ``(nmax+1,lmax+1,lmax+1)`` and any
         invalid terms (e.g., when m > l) will be ignored.
-    nmax : int
-        Number of radial expansion terms.
-    lmax : int
-        Maximum ``l`` value for the spherical harmonics.
     G : numeric (optional)
         Gravitational constant. Leave unset for dimensionless units.
     M : numeric (optional)
@@ -230,17 +207,13 @@ cpdef gradient(double[:,::1] xyz,
         A 2D array of the gradient of the potential at each input position.
         Will have the same shape as the input position array, ``xyz``.
 
-    TODOs
-    -----
-
-    * Rework this so it accepts an array of nlm's with the same
-        shape as the coefficients so the user doesn't always have to
-        pass in a full 3D array.
-
     """
     cdef:
         int ncoords = xyz.shape[0]
         double[:,::1] grad = np.zeros((ncoords,3))
+
+        int nmax = Snlm.shape[0]-1
+        int lmax = Snlm.shape[1]-1
 
     scf_gradient_helper(&xyz[0,0], ncoords, G, M, r_s,
                         &Snlm[0,0,0], &Tnlm[0,0,0],
@@ -302,6 +275,10 @@ class SCFPotential(CPotentialBase):
     def __init__(self, m, r_s, Snlm, Tnlm, units=None):
         Snlm = np.array(Snlm)
         Tnlm = np.array(Tnlm)
+
+        if Snlm.shape != Tnlm.shape:
+            raise ValueError("Shape of coefficient arrays must match! "
+                             "({} vs {})".format(Snlm.shape, Tnlm.shape))
 
         parameters = OrderedDict()
         parameters['m'] = m

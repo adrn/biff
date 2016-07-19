@@ -45,15 +45,15 @@ def test_hernquist():
     xyz[:,1] = rr * np.sin(np.pi/4.) * np.sin(np.pi/4.)
     xyz[:,2] = rr * np.cos(np.pi/4.)
 
-    bfe_dens = density(xyz, Snlm, Tnlm, nmax, lmax, M=M, r_s=r_s)
+    bfe_dens = density(xyz, Snlm, Tnlm, M=M, r_s=r_s)
     true_dens = hernquist_density(xyz.T, M, r_s)
     np.testing.assert_allclose(bfe_dens, true_dens)
 
-    bfe_pot = potential(xyz, Snlm, Tnlm, nmax, lmax, G=G, M=M, r_s=r_s)
+    bfe_pot = potential(xyz, Snlm, Tnlm, G=G, M=M, r_s=r_s)
     true_pot = hernquist_potential(xyz.T, M, r_s)
     np.testing.assert_allclose(bfe_pot, true_pot)
 
-    bfe_grad = gradient(xyz, Snlm, Tnlm, nmax, lmax, G=G, M=M, r_s=r_s)
+    bfe_grad = gradient(xyz, Snlm, Tnlm, G=G, M=M, r_s=r_s)
     true_grad = hernquist_gradient(xyz.T, M, r_s)
     np.testing.assert_allclose(bfe_grad.T, true_grad)
 
@@ -135,9 +135,9 @@ def test_pure_py():
 
     py_den,py_pot,py_grd = pure_py(xyz.T, Snlm, Tnlm, nmax, lmax)
 
-    cy_den = density(xyz, Snlm, Tnlm, nmax, lmax, M=1., r_s=1.)
-    cy_pot = potential(xyz, Snlm, Tnlm, nmax, lmax, G=1., M=1., r_s=1.)
-    cy_grd = gradient(xyz, Snlm, Tnlm, nmax, lmax, G=1., M=1., r_s=1.).T
+    cy_den = density(xyz, Snlm, Tnlm, M=1., r_s=1.)
+    cy_pot = potential(xyz, Snlm, Tnlm, G=1., M=1., r_s=1.)
+    cy_grd = gradient(xyz, Snlm, Tnlm, G=1., M=1., r_s=1.).T
 
     assert np.allclose(py_den, cy_den)
     assert np.allclose(py_pot, cy_pot)
@@ -149,9 +149,9 @@ def test_pure_py():
 
     py_den,py_pot,py_grd = pure_py(xyz.T, Snlm, Tnlm, nmax, lmax)
 
-    cy_den = density(xyz, Snlm, Tnlm, nmax, lmax, M=1., r_s=1.)
-    cy_pot = potential(xyz, Snlm, Tnlm, nmax, lmax, G=1., M=1., r_s=1.)
-    cy_grd = gradient(xyz, Snlm, Tnlm, nmax, lmax, G=1., M=1., r_s=1.).T
+    cy_den = density(xyz, Snlm, Tnlm, M=1., r_s=1.)
+    cy_pot = potential(xyz, Snlm, Tnlm, G=1., M=1., r_s=1.)
+    cy_grd = gradient(xyz, Snlm, Tnlm, G=1., M=1., r_s=1.).T
 
     assert np.allclose(py_den, cy_den)
     assert np.allclose(py_pot, cy_pot)

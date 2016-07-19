@@ -22,7 +22,6 @@ from .._bfe import density, potential, gradient
 @pytest.mark.parametrize("basename", [
     'simple-hernquist', 'multi-hernquist', 'simple-nonsph', 'random', 'wang-zhao',
 ])
-@pytest.mark.skipif('True')
 def test_density(basename):
     pos_path = os.path.abspath(get_pkg_data_filename('../data/positions.dat.gz'))
     coeff_path = os.path.abspath(get_pkg_data_filename('../data/{0}.coeff'.format(basename)))
@@ -49,10 +48,10 @@ def test_density(basename):
         sin_coeff[int(n),int(l),int(m)] = sc
 
     dens = density(xyz, M=1., r_s=1.,
-                   Snlm=cos_coeff, Tnlm=sin_coeff,
-                   nmax=nmax, lmax=lmax)
+                   Snlm=cos_coeff, Tnlm=sin_coeff)
 
     # TODO: nothing to compare this to....
+    # just test that it runs...
 
 @pytest.mark.parametrize("basename", [
     'simple-hernquist', 'multi-hernquist', 'simple-nonsph', 'random', 'wang-zhao',
@@ -85,8 +84,7 @@ def test_potential(basename):
         sin_coeff[int(n),int(l),int(m)] = sc
 
     potv = potential(xyz, G=1., M=1., r_s=1.,
-                     Snlm=cos_coeff, Tnlm=sin_coeff,
-                     nmax=nmax, lmax=lmax)
+                     Snlm=cos_coeff, Tnlm=sin_coeff)
 
     # for some reason, SCF potential is -potential
     scf_potv = -accp[:,-1]
@@ -122,8 +120,7 @@ def test_gradient(basename):
         sin_coeff[int(n),int(l),int(m)] = sc
 
     grad = gradient(xyz, G=1., M=1., r_s=1.,
-                    Snlm=cos_coeff, Tnlm=sin_coeff,
-                    nmax=nmax, lmax=lmax)
+                    Snlm=cos_coeff, Tnlm=sin_coeff)
 
     # I output the acceleration from SCF when I make the files
     #   so I have no idea why I don't need a minus sign here...

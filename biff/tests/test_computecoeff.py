@@ -82,9 +82,9 @@ def test_plummer():
         Tnlm[n,l,m] = T
         Terr[n,l,m] = T_err
 
-    bfe_dens = density(xyz, Snlm, Tnlm, nmax, lmax, true_M, true_r_s)
-    bfe_pot = potential(xyz, Snlm, Tnlm, nmax, lmax, G, true_M, true_r_s)
-    bfe_grad = gradient(xyz, Snlm, Tnlm, nmax, lmax, G, true_M, true_r_s)
+    bfe_dens = density(xyz, Snlm, Tnlm, true_M, true_r_s)
+    bfe_pot = potential(xyz, Snlm, Tnlm, G, true_M, true_r_s)
+    bfe_grad = gradient(xyz, Snlm, Tnlm, G, true_M, true_r_s)
 
     # fig,axes = pl.subplots(3, 1, figsize=(6,12), sharex=True)
 
@@ -196,12 +196,12 @@ def test_flattened_hernquist():
 
     # confirmed by testing...
     tru_dens = flattened_hernquist_density(xyz[0], xyz[1], xyz[2], M, a, q)
-    bfe_dens = density(np.ascontiguousarray(xyz.T), Snlm, Tnlm, nmax, lmax, M, a)
+    bfe_dens = density(np.ascontiguousarray(xyz.T), Snlm, Tnlm, M, a)
     assert np.all((np.abs(bfe_dens - tru_dens) / tru_dens) < 0.05) # <5%
 
     tru_grad = np.array([flattened_hernquist_gradient(xyz[0,i], xyz[1,i], xyz[2,i], G, M, a, q)
                         for i in range(xyz.shape[1])]).T
-    bfe_grad = gradient(np.ascontiguousarray(xyz.T), Snlm, Tnlm, nmax, lmax, G, M, a).T
+    bfe_grad = gradient(np.ascontiguousarray(xyz.T), Snlm, Tnlm, G, M, a).T
 
     # check what typical errors are
     # for j in range(3):
@@ -246,7 +246,7 @@ def test_flattened_hernquist():
     z = r*np.cos(t)
 
     _xyz = np.vstack((x.ravel(),np.zeros_like(x.ravel()),z.ravel()))
-    bfe_dens = density(np.ascontiguousarray(_xyz.T), Snlm, Tnlm, nmax, lmax, M, a)
+    bfe_dens = density(np.ascontiguousarray(_xyz.T), Snlm, Tnlm, M, a)
     true_dens = flattened_hernquist_density(_xyz[0], _xyz[1], _xyz[2], M, a, q)
 
     fig,ax = pl.subplots(1, 1, figsize=(8,8))

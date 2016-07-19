@@ -52,7 +52,7 @@ def test_plummer():
 
     # plot discrete vs. analytic potential
     true_pot = pot.value(xyz.T).value
-    bfe_pot = potential(xyz, Snlm, Tnlm, nmax, lmax, G, M, r_s)
+    bfe_pot = potential(xyz, Snlm, Tnlm, G, M, r_s)
 
     # import matplotlib.pyplot as pl
 
