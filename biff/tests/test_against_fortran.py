@@ -38,7 +38,7 @@ def test_density(basename):
     for row in coeff:
         n,l,m,cc,sc = row
 
-        # transform from Lowing 2011 coefficients to H&O 1992 coefficients
+        # transform from H&O 1992 coefficients to Lowing 2011 coefficients
         if l != 0:
             fac = np.sqrt(4*np.pi) * np.sqrt((2*l+1) / (4*np.pi) * factorial(l-m) / factorial(l+m))
             cc /= fac
@@ -74,7 +74,7 @@ def test_potential(basename):
     for row in coeff:
         n,l,m,cc,sc = row
 
-        # transform from Lowing 2011 coefficients to H&O 1992 coefficients
+        # transform from H&O 1992 coefficients to Lowing 2011 coefficients
         if l != 0:
             fac = np.sqrt(4*np.pi) * np.sqrt((2*l+1) / (4*np.pi) * factorial(l-m) / factorial(l+m))
             cc /= fac
@@ -110,7 +110,7 @@ def test_gradient(basename):
     for row in coeff:
         n,l,m,cc,sc = row
 
-        # transform from Lowing 2011 coefficients to H&O 1992 coefficients
+        # transform from H&O 1992 coefficients to Lowing 2011 coefficients
         if l != 0:
             fac = np.sqrt(4*np.pi) * np.sqrt((2*l+1) / (4*np.pi) * factorial(l-m) / factorial(l+m))
             cc /= fac
