@@ -1,8 +1,8 @@
 .. _biff
 
-***************
-Biff (``biff``)
-***************
+****
+Biff
+****
 
 Biff is a Python package for evaluating basis function expansions of mass
 densities and gravitational potentials. Currently, the only implemented
@@ -11,9 +11,8 @@ expansion is the Self-Consistent Field (SCF) method of Hernquist & Ostriker
 angular functions. This implementation is based on the formalism described in
 the original paper but using the notation of Lowing et al. (2011; [L11]_).
 
-*************
 Documentation
-*************
+=============
 
 .. toctree::
    :maxdepth: 1
