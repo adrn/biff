@@ -42,3 +42,8 @@ The easiest way to install the latest stable version of Biff is via pip:
 To get the latest development version, you can clone this repository and do:
 
     python setup.py install
+
+License
+=======
+
+[See the license.](https://github.com/adrn/biff/blob/master/LICENSE)
