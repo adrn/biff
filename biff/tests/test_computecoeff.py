@@ -7,6 +7,7 @@ __author__ = "adrn <adrn@astro.columbia.edu>"
 import os
 
 # Third-party
+from astropy import log as logger
 import astropy.units as u
 from astropy.utils.data import get_pkg_data_filename
 from astropy.constants import G as _G
@@ -38,6 +39,17 @@ def test_hernquist():
 
             np.testing.assert_allclose(T, 0.)
             np.testing.assert_allclose(Terr, 0., atol=1E-10)
+
+def test_hernquist_spherical():
+    (S,Serr),(T,Terr) = compute_coeffs(hernquist_density, nmax=8, lmax=8,
+                                       M=1., r_s=1., args=(1., 1.), skip_m=True)
+
+    np.testing.assert_allclose(S[0,0,0], 1., atol=1E-13)
+    np.testing.assert_allclose(S[1:,:,:], 0., atol=1E-13)
+    np.testing.assert_allclose(Serr, 0., atol=1E-10)
+
+    np.testing.assert_allclose(T, 0., atol=1E-13)
+    np.testing.assert_allclose(Terr, 0., atol=1E-10)
 
 # ----------------------------------------------------------------------------
 
