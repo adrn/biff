@@ -5,6 +5,7 @@ from __future__ import division, print_function
 __author__ = "adrn <adrn@astro.columbia.edu>"
 
 # Third-party
+from astropy import log as logger
 import numpy as np
 import scipy.integrate as si
 
@@ -91,6 +92,8 @@ def compute_coeffs(density_func, nmax, lmax, M, r_s, args=(),
             for m in range(l+1):
                 if skip_m and m > 0: continue
 
+                logger.debug("Computing coefficients (n,l,m)=({},{},{})".format(n,l,m))
+
                 Snlm[n,l,m],Snlm_e[n,l,m] = si.nquad(Snlm_integrand,
                                              ranges=limits,
                                              args=(density_func, n, l, m, M, r_s, args),
@@ -168,6 +171,9 @@ def compute_coeffs_discrete(xyz, mass, nmax, lmax, r_s,
         for l in range(lmin, lmax+1, lstride):
             for m in range(l+1):
                 if skip_m and m > 0: continue
+
+                logger.debug("Computing coefficients (n,l,m)=({},{},{})".format(n,l,m))
+
                 Snlm[n,l,m], Tnlm[n,l,m] = STnlm_discrete(s, phi, X, mass, n, l, m)
 
     return Snlm, Tnlm
