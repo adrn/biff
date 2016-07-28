@@ -79,3 +79,32 @@ extern void c_STnlm_discrete(double *s, double *phi, double *X, double *m_k, int
         ST[1] += _tmp * sin(m*phi[k]); // Tnlm
     }
 }
+
+extern void c_STnlm_var_discrete(double *s, double *phi, double *X, double *m_k, int K,
+                                 int n, int l, int m, double *ST_var) {
+    // TODO: I shouldn't have just copy-pasted this code...
+
+    // temporary variables
+    double Knl, Anl_til, krond, numer, denom, coeff, _tmp;
+
+    Knl = 0.5*n*(n + 4*l + 3) + (l + 1)*(2*l + 1);
+    if (m == 0) {
+        krond = 1.;
+    } else {
+        krond = 0.;
+    }
+
+    numer = gsl_sf_fact(n) * (n + 2*l + 1.5) * pow(gsl_sf_gamma(2*l + 1.5),2);
+    denom = gsl_sf_gamma(n + 4*l + 3);
+    Anl_til = -(pow(2., 8*l+6) / (4*M_PI*Knl)) * numer / denom;
+    coeff = (2 - krond) * Anl_til;
+
+    // zero out coeff storage array
+    ST_var[0] = 0.;
+    ST_var[1] = 0.;
+    for (int k=0; k<K; k++) {
+        _tmp = coeff * m_k[k] * phi_nlm(s[k], phi[k], X[k], n, l, m);
+        ST_var[0] += _tmp * _tmp * cos(m*phi[k]) * cos(m*phi[k]); // var(Snlm)
+        ST_var[1] += _tmp * _tmp * sin(m*phi[k]) * sin(m*phi[k]); // var(Tnlm)
+    }
+}

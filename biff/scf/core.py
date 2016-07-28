@@ -10,7 +10,7 @@ import numpy as np
 import scipy.integrate as si
 
 # Project
-from ._computecoeff import Snlm_integrand, Tnlm_integrand, STnlm_discrete
+from ._computecoeff import Snlm_integrand, Tnlm_integrand, STnlm_discrete, STnlm_var_discrete
 
 __all__ = ['compute_coeffs', 'compute_coeffs_discrete']
 
@@ -107,7 +107,8 @@ def compute_coeffs(density_func, nmax, lmax, M, r_s, args=(),
     return (Snlm,Snlm_e), (Tnlm,Tnlm_e)
 
 def compute_coeffs_discrete(xyz, mass, nmax, lmax, r_s,
-                            skip_odd=False, skip_even=False, skip_m=False):
+                            skip_odd=False, skip_even=False, skip_m=False,
+                            compute_var=False):
     """
     Compute the expansion coefficients for representing the density distribution of input points
     as a basis function expansion. The points, ``xyz``, are assumed to be samples from the
@@ -137,6 +138,10 @@ def compute_coeffs_discrete(xyz, mass, nmax, lmax, r_s,
         take :math:`l=1,3,5,...`
     skip_m : bool (optional)
         Ignore terms with :math:`m > 0`.
+    compute_var : bool (optional)
+        Also compute the variances of the coefficients. This does not compute the full covariance
+        matrix of the coefficients, just the individual variances.
+        TODO: separate function to compute full covariance matrix?
 
     Returns
     -------
@@ -158,6 +163,10 @@ def compute_coeffs_discrete(xyz, mass, nmax, lmax, r_s,
     Snlm = np.zeros((nmax+1, lmax+1, lmax+1))
     Tnlm = np.zeros((nmax+1, lmax+1, lmax+1))
 
+    if compute_var:
+        Snlm_var = np.zeros((nmax+1, lmax+1, lmax+1))
+        Tnlm_var = np.zeros((nmax+1, lmax+1, lmax+1))
+
     # positions and masses of point masses
     xyz = np.ascontiguousarray(np.atleast_2d(xyz))
     mass = np.ascontiguousarray(np.atleast_1d(mass))
@@ -175,5 +184,10 @@ def compute_coeffs_discrete(xyz, mass, nmax, lmax, r_s,
                 logger.debug("Computing coefficients (n,l,m)=({},{},{})".format(n,l,m))
 
                 Snlm[n,l,m], Tnlm[n,l,m] = STnlm_discrete(s, phi, X, mass, n, l, m)
+                if compute_var:
+                    Snlm_var[n,l,m], Tnlm_var[n,l,m] = STnlm_var_discrete(s, phi, X, mass, n, l, m)
 
-    return Snlm, Tnlm
+    if compute_var:
+        return (Snlm,Snlm_var), (Tnlm,Tnlm_var)
+    else:
+        return Snlm, Tnlm

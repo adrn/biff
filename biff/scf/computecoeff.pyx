@@ -26,6 +26,7 @@ cdef extern from "src/coeff_helper.c":
     double c_Snlm_integrand(double phi, double X, double xsi, double density, int n, int l, int m)
     double c_Tnlm_integrand(double phi, double X, double xsi, double density, int n, int l, int m)
     void c_STnlm_discrete(double *s, double *phi, double *X, double *m_k, int K, int n, int l, int m, double *ST)
+    void c_STnlm_var_discrete(double *s, double *phi, double *X, double *m_k, int K, int n, int l, int m, double *ST_var)
 
 __all__ = ['Snlm_integrand', 'Tnlm_integrand']
 
@@ -69,3 +70,14 @@ cpdef STnlm_discrete(double[::1] s, double[::1] phi, double[::1] X,
     c_STnlm_discrete(&s[0], &phi[0], &X[0],
                      &m_k[0], K, n, l, m, &ST[0])
     return ST
+
+cpdef STnlm_var_discrete(double[::1] s, double[::1] phi, double[::1] X,
+                         double[::1] m_k,
+                         int n, int l, int m):
+    cdef:
+        double[::1] ST_var = np.zeros(2)
+        int K = s.size
+
+    c_STnlm_var_discrete(&s[0], &phi[0], &X[0],
+                         &m_k[0], K, n, l, m, &ST_var[0])
+    return ST_var
