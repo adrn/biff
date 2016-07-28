@@ -51,4 +51,5 @@ distribute-*.tar.gz
 
 
 notebooks/*
-test-data-helper/*.dat.gz
+test-data-helper/compute-accp/*.dat.gz
+test-data-helper/compute-coeff/*.coeff
