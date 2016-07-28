@@ -8,6 +8,6 @@ make run
 Then you need to move them in to the data path. From the top level Biff directory, do:
 
 ```
-cp test-data-helper/*.dat.gz biff/data/
-cp test-data-helper/*.coeff biff/data/
+cp test-data-helper/compute-accp/*.dat.gz biff/data/
+cp test-data-helper/compute-accp/*.coeff biff/data/
 ```
