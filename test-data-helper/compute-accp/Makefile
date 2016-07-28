@@ -11,8 +11,8 @@ all:
 	$(FC) $(FCFLAGS) $(SRC) -o $(PROG)
 
 run:
-	cp ../biff/data/positions.dat.gz .
-	cp ../biff/data/plummer-pos.dat.gz .
+	cp ../../biff/scf/data/positions.dat.gz .
+	cp ../../biff/scf/data/plummer-pos.dat.gz .
 
 	gzip -d positions.dat.gz
 	gzip -d plummer-pos.dat.gz
