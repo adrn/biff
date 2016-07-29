@@ -13,6 +13,10 @@ and spherical harmonics for angular functions. This implementation is based on
 the formalism described in the original paper but using the notation of Lowing
 et al. (2011; [L11]_).
 
+.. note::
+
+    Once it is more stable, Biff may be merged in to `gala.potential` .
+
 Documentation
 =============
 

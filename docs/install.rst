@@ -42,5 +42,5 @@ You'll also need the following packages:
 - `Cython <https://github.com/cython/cython>`_
 - `Numpy <https://github.com/numpy/numpy>`_
 - `Scipy <https://github.com/scipy/scipy>`_
-- `Astropy <https://github.com/astropy/astropy>`_
+- `Astropy`_
 - `Gala <https://github.com/adrn/gala>`_ (install with ``pip install astro-gala``)
