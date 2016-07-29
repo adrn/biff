@@ -49,4 +49,5 @@ def get_extensions():
 
 def get_package_data():
     return {'biff': ['*.pyx', '*/*.pyx',
-                     'scf/src/*.h', 'scf/data/*.dat.gz', 'scf/data/*.coeff']}
+                     'scf/src/*.h', 'scf/data/*.csv',
+                     'scf/data/*.dat.gz', 'scf/data/*.coeff']}

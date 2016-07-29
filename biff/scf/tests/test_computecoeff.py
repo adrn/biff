@@ -141,6 +141,8 @@ def test_flattened_hernquist():
     in that notebook.
     """
 
+    coeff_path = os.path.abspath(get_pkg_data_filename('../data/Snlm-mathematica.csv'))
+
     G = 1.
     M = 1
     a = 1.
@@ -158,7 +160,6 @@ def test_flattened_hernquist():
         for m in range(lmax+1):
             assert Snlm[0,l,m] == 0.
 
-    coeff_path = os.path.abspath(get_pkg_data_filename('../data/Snlm-mathematica.csv'))
     m_Snl0 = np.loadtxt(coeff_path, delimiter=',')
     m_Snl0 = m_Snl0[:,::2] # every other l
 
