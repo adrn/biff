@@ -30,10 +30,11 @@ functionality implemented in `gala` (especially `gala.potential`). To create an
 instance, you must already have the expansion coefficients on hand (``Snlm`` for
 the cosine terms and ``Tnlm`` for the sine terms)::
 
-    >>>
+    >>> print("TODO")
+    TODO
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 2
 
    examples
 
