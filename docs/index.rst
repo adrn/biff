@@ -1,4 +1,4 @@
-.. _biff
+.. _biff:
 
 ****
 Biff
