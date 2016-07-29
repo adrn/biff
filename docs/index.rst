@@ -24,7 +24,7 @@ Documentation
    :maxdepth: 1
 
    install
-   scf
+   scf/index
 
 References
 ----------
