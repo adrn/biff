@@ -17,6 +17,10 @@ et al. (2011; [L11]_).
 
     Once it is more stable, Biff may be merged in to `gala.potential` .
 
+.. raw:: html
+
+   <video controls src="_static/anim-prof.mp4" width=512 height=365 autoplay loop></video>
+
 Documentation
 =============
 
