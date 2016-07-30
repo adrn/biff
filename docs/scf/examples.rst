@@ -55,10 +55,10 @@ Let's plot the density profile derived from these samples vs. the true profile:
     :align: center
     :context:
 
-    from astropy.visualization import astropy_mpl_style
     import astropy.units as u
     import numpy as np
     import matplotlib.pyplot as plt
+    from astropy.visualization import astropy_mpl_style
     plt.style.use(astropy_mpl_style)
     import gala.potential as gp
     from gala.units import dimensionless
@@ -249,6 +249,8 @@ visualize this by plotting isodensity contours in the :math:`x`-:math:`z` plane:
 
     import astropy.units as u
     import matplotlib.pyplot as plt
+    from astropy.visualization import astropy_mpl_style
+    plt.style.use(astropy_mpl_style)
     import matplotlib as mpl
     from matplotlib import ticker
     import numpy as np
