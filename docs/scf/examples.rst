@@ -4,10 +4,10 @@ Examples
 
 For code blocks below, the following imports will be needed::
 
-    >>> import astropy.units as u
-    >>> import matplotlib.pyplot as plt
-    >>> import numpy as np
-    >>> import biff.scf as bscf
+    import astropy.units as u
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import biff.scf as bscf
 
 .. _coeff-particle:
 
@@ -163,54 +163,116 @@ this example)::
     plt.tight_layout()
 
 In addition to computing the coefficient values, we can also compute the
-variances of the coefficients. This will let us estimate the signal-to-noise of
-each expansion term and will aid us in deciding when to truncate the expansion
-(see [W96]_ for the methodology and reasoning behind this)::
+variances of the coefficients. Here we will relax the assumption about spherical
+symmetry by setting :math:`l_{\rm max}=4`. By computing the variance of each
+coefficient, we can estimate the signal-to-noise ratio of each expansion term
+and use this to help decide when to truncate the expansion (see [W96]_ for the
+methodology and reasoning behind this)::
 
     (S,varS),(T,varT) = bscf.compute_coeffs_discrete(xyz, mass=mass, r_s=1.,
-                                                     nmax=20, lmax=0,
+                                                     nmax=10, lmax=4, skip_m=True,
                                                      compute_var=True)
 
     signal_to_noise = np.sqrt(S**2 / varS)
 
-    plt.semilogy(signal_to_noise, marker=None, lw=2)
+    for l in range(S.shape[1]):
+        plt.semilogy(signal_to_noise[:,l,0], marker=None, lw=2,
+                     alpha=0.5, label='l={}'.format(l))
+
     plt.axhline(1., linestyle='dashed')
     plt.xlabel("$n$")
     plt.ylabel("$S/N$")
+    plt.legend()
 
 .. plot::
     :align: center
     :context: close-figs
 
     (S,varS),(T,varT) = bscf.compute_coeffs_discrete(xyz, mass=mass, r_s=1.,
-                                                     nmax=20, lmax=0,
+                                                     nmax=10, lmax=4,
                                                      compute_var=True)
 
-    signal_to_noise = np.sqrt(S[:,0,0]**2 / varS[:,0,0])
+    signal_to_noise = np.sqrt(S**2 / varS)
 
     plt.figure(figsize=(6,4))
-    plt.semilogy(signal_to_noise, marker=None, lw=2)
+    for l in range(S.shape[1]):
+        plt.semilogy(signal_to_noise[:,l,0], marker=None, lw=2,
+                     alpha=0.5, label='l={}'.format(l))
     plt.axhline(1., linestyle='dashed')
     plt.xlabel("$n$")
     plt.ylabel("$S/N$")
+    plt.legend()
     plt.tight_layout()
 
 The horizontal line in the plot above is for a signal-to-noise ratio of 1 -- any
-coefficients with a SNR below this line are suspect and likely just adding noise
-to the expansion.
+coefficients with a SNR near or below this line are suspect and likely just
+adding noise to the expansion. Note that all of the SNR values for :math:`l > 0`
+hover around 1 -- this is a good indication that we only need the :math:`l=0`
+terms to accurately represent the density distribution of the particles.
 
 .. _coeff-analytic:
 
 Computing expansion coefficients for an analytic density
 --------------------------------------------------------
 
+To compute expansion coefficients for an analytic density profile, use
+`~biff.scf.compute_coeffs`. In this example, we will write a function to
+evaluate an oblate density distribution and compute the expansion coefficients.
 
-    >>> print("TODO")
-    TODO
+We'll use a flattened Hernquist profile as our density profile:
+
+.. math::
+
+    \rho(s) &= \frac{M \, a}{2\pi} \, \frac{1}{s (s+a)^3}
+
+    s^2 &= x^2 + y^2 + \frac{z^2}{q^2}
+
+In code::
+
+    def hernquist_density(r, M, a):
+        return M*a / (2*np.pi) / (r*(r+a)**3)
+
+    def flattened_hernquist_density(x, y, z, M, a, q):
+        s = np.sqrt(x**2 + y**2 + (z/q)**2)
+        return hernquist_density(s, M, a)
+
+We'll again set :math:`M=a=1` and we'll use a flattening :math:`q=0.8`. Let's
+visualize this by plotting isodensity contours in the :math:`x`-:math:`z` plane:
 
 .. plot::
     :align: center
     :context: reset
+
+    import astropy.units as u
+    import matplotlib.pyplot as plt
+    from matplotlib import ticker
+    import numpy as np
+    import biff.scf as bscf
+
+    def hernquist_density(r, M, a):
+        return M*a / (2*np.pi) / (r*(r+a)**3)
+
+    def flattened_hernquist_density(x, y, z, M, a, q):
+        s = np.sqrt(x**2 + y**2 + (z/q)**2)
+        return hernquist_density(s, M, a)
+
+    M = 1.
+    a = 1.
+    q = 0.8
+
+    x,z = np.meshgrid(np.linspace(-10., 10., 64),
+                      np.linspace(-10., 10., 64))
+    y = np.zeros_like(x)
+
+    dens = flattened_hernquist_density(x, y, z, M, a, q)
+
+    plt.figure(figsize=(6,6))
+    plt.contourf(x, z, dens, cmap='magma',
+                 levels=np.logspace(np.log10(dens.min()), np.log10(dens.max()), 32),
+                 locator=ticker.LogLocator())
+    plt.xlabel("$x$", fontsize=22)
+    plt.ylabel("$z$", fontsize=22)
+    plt.tight_layout()
 
 
 
