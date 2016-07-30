@@ -34,6 +34,7 @@ Examples
 --------
 - :ref:`coeff-particle`
 - :ref:`coeff-analytic`
+- :ref:`potential-class`
 
 .. toctree::
    :hidden:

@@ -275,6 +275,7 @@ visualize this by plotting isodensity contours in the :math:`x`-:math:`z` plane:
     plt.contourf(x, z, dens, cmap='magma',
                  levels=np.logspace(np.log10(dens.min()), np.log10(dens.max()), 32),
                  locator=ticker.LogLocator())
+    plt.title("Isodensity")
     plt.xlabel("$x$", fontsize=22)
     plt.ylabel("$z$", fontsize=22)
     plt.tight_layout()
@@ -343,6 +344,151 @@ a grid::
     plt.xlabel('$n$')
     plt.ylabel('$l$')
     plt.colorbar()
+
+.. _potential-class:
+
+Using `~biff.scf.SCFPotential` to evaluate the density, potential, gradient
+---------------------------------------------------------------------------
+
+In this example we'll continue where the :ref:`previous example
+<coeff-analytic>` left off: we now have computed expansion coefficients for a
+given density function and we would like to evaluate the gradient of the
+gravitational potential at various locations. We will use `gala` to integrate
+an orbit in the expansion potential.
+
+From the previous example, we have a set of cosine and sine coefficients (``S``
+and ``T``) for an SCF representation of a flattened (oblate) Hernquist density
+profile. First, we'll create an `~biff.scf.SCFPotential` object using these
+coefficients::
+
+    potential = bscf.SCFPotential(Snlm=S, Tnlm=T, m=M, r_s=a) # M=a=1
+
+Let's compare how our expansion density to the true density by
+recreating the above isodensity contour figure with SCF density contours
+overlaid::
+
+    x,z = np.meshgrid(np.linspace(-10., 10., 128),
+                      np.linspace(-10., 10., 128))
+    y = np.zeros_like(x)
+    true_dens = flattened_hernquist_density(x, y, z, M, a, q)
+
+    # we need an array of positions with shape (3,n_samples) for SCFPotential
+    xyz = np.vstack((x.ravel(),y.ravel(),z.ravel()))
+    scf_dens = potential.density(xyz)
+
+    # log-spaced contour levels
+    levels = np.logspace(np.log10(true_dens.min()), np.log10(true_dens.max()), 16)
+
+    plt.figure(figsize=(6,6))
+
+    plt.contourf(x, z, true_dens, cmap='magma',
+                 levels=levels, locator=ticker.LogLocator())
+    plt.contour(x, z, scf_dens.reshape(x.shape), colors='w',
+                levels=levels, locator=ticker.LogLocator())
+
+    plt.title("Isodensity")
+    plt.xlabel("$x$", fontsize=22)
+    plt.ylabel("$z$", fontsize=22)
+
+.. plot::
+    :align: center
+    :context: close-figs
+
+    potential = bscf.SCFPotential(Snlm=S, Tnlm=T, m=M, r_s=a) # M=a=1
+
+    # we need an array of positions with shape (3,n_samples) for SCFPotential
+    xyz = np.vstack((x.ravel(),y.ravel(),z.ravel()))
+    scf_dens = potential.density(xyz)
+
+    # log-spaced contour levels
+    true_dens = flattened_hernquist_density(x, y, z, M, a, q)
+    levels = np.logspace(np.log10(true_dens.min()), np.log10(true_dens.max()), 16)
+
+    plt.figure(figsize=(6,6))
+
+    plt.contourf(x, z, true_dens, cmap='magma',
+                 levels=levels, locator=ticker.LogLocator())
+    plt.contour(x, z, scf_dens.reshape(x.shape), colors='w',
+                levels=levels, locator=ticker.LogLocator())
+
+    plt.title("Isodensity")
+    plt.xlabel("$x$", fontsize=22)
+    plt.ylabel("$z$", fontsize=22)
+    plt.tight_layout()
+
+By eye, the SCF representation looks pretty good. Let's now create a plot of
+equipotential contours using the `~biff.scf.SCFPotential` instance::
+
+    scf_pot = np.abs(potential.value(xyz))
+    scf_pot = scf_pot.value # get numerical value from `~astropy.units.Quantity`
+
+    # log-spaced contour levels
+    levels = np.logspace(np.log10(scf_pot.min()), np.log10(scf_pot.max()), 16)
+
+    plt.figure(figsize=(6,6))
+
+    plt.contour(x, z, scf_pot.reshape(x.shape), cmap='inferno_r',
+                levels=levels, locator=ticker.LogLocator())
+
+    plt.title("Equipotential")
+    plt.xlabel("$x$", fontsize=22)
+    plt.ylabel("$z$", fontsize=22)
+
+.. plot::
+    :align: center
+    :context: close-figs
+
+    scf_pot = np.abs(potential.value(xyz))
+    scf_pot = scf_pot.value # get numerical value from Astropy Quantity
+
+    # log-spaced contour levels
+    levels = np.logspace(np.log10(scf_pot.min()), np.log10(scf_pot.max()), 16)
+
+    plt.figure(figsize=(6,6))
+
+    plt.contour(x, z, scf_pot.reshape(x.shape), cmap='inferno_r',
+                levels=levels, locator=ticker.LogLocator())
+
+    plt.title("Equipotential")
+    plt.xlabel("$x$", fontsize=22)
+    plt.ylabel("$z$", fontsize=22)
+    plt.tight_layout()
+
+(the above is actually provided as a convenience method of any
+`~gala.potential.PotentialBase` subclass -- see
+`~gala.potential.PotentialBase.plot_contours`).
+
+Now let's integrate an orbit in this potential. We'll use the orbit integration
+framework from `gala.integrate` and the convenience method
+`~biff.scf.SCFPotential.integrate_orbit` to do this::
+
+    import gala.dynamics as gd
+
+    # when using dimensionless units, we don't need to specify units for the
+    # initial conditions
+    w0 = gd.CartesianPhaseSpacePosition(pos=[1.,0,0.25],
+                                        vel=[0.,0.3,0.])
+
+    # by default this uses Leapfrog integration
+    orbit = potential.integrate_orbit(w0, dt=0.1, n_steps=10000)
+
+    fig = orbit_l.plot()
+
+.. plot::
+    :align: center
+    :context: close-figs
+
+    import gala.dynamics as gd
+
+    # when using dimensionless units, we don't need to specify units for the
+    # initial conditions
+    w0 = gd.CartesianPhaseSpacePosition(pos=[1.,0,0.25],
+                                        vel=[0.,0.3,0.])
+
+    # by default this uses Leapfrog integration
+    orbit = potential.integrate_orbit(w0, dt=0.1, n_steps=10000)
+
+    fig = orbit.plot()
 
 References
 ----------
