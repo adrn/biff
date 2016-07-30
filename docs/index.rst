@@ -1,11 +1,14 @@
 .. _biff:
 
-****
 Biff
-****
+====
 
 Biff is a Python package for evaluating basis function expansions of mass
 densities and gravitational potentials.
+
+.. raw:: html
+
+   <video controls src="_static/anim-prof.mp4" width=450 height=320 autoplay loop></video>
 
 Currently, the only implemented expansion is the Self-Consistent Field (SCF)
 method of Hernquist & Ostriker (1992; [HO92]_) using Hernquist radial functions
@@ -17,10 +20,6 @@ et al. (2011; [L11]_).
 
     Once it is more stable, Biff may be merged in to `gala.potential` .
 
-.. raw:: html
-
-   <video controls src="_static/anim-prof.mp4" width=512 height=365 autoplay loop></video>
-
 Documentation
 =============
 
@@ -30,6 +29,9 @@ Documentation
    install
    scf/index
 
+-------------------------------
+
+----------
 References
 ----------
 .. [HO92] http://dx.doi.org/10.1086/171025
