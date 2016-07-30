@@ -173,7 +173,8 @@ each expansion term and will aid us in deciding when to truncate the expansion
 
     signal_to_noise = np.sqrt(S**2 / varS)
 
-    plt.plot(signal_to_noise, marker=None, lw=2)
+    plt.semilogy(signal_to_noise, marker=None, lw=2)
+    plt.axhline(1., linestyle='dashed')
     plt.xlabel("$n$")
     plt.ylabel("$S/N$")
 
@@ -188,30 +189,30 @@ each expansion term and will aid us in deciding when to truncate the expansion
     signal_to_noise = np.sqrt(S[:,0,0]**2 / varS[:,0,0])
 
     plt.figure(figsize=(6,4))
-    plt.plot(signal_to_noise, marker=None, lw=2)
+    plt.semilogy(signal_to_noise, marker=None, lw=2)
+    plt.axhline(1., linestyle='dashed')
     plt.xlabel("$n$")
     plt.ylabel("$S/N$")
     plt.tight_layout()
+
+The horizontal line in the plot above is for a signal-to-noise ratio of 1 -- any
+coefficients with a SNR below this line are suspect and likely just adding noise
+to the expansion.
 
 .. _coeff-analytic:
 
 Computing expansion coefficients for an analytic density
 --------------------------------------------------------
 
-Here's another example of integrating the
-`Lorenz equations <https://en.wikipedia.org/wiki/Lorenz_system>`_, a 3D
-nonlinear system::
 
     >>> print("TODO")
     TODO
 
 .. plot::
     :align: center
+    :context: reset
 
-    import astropy.units as u
-    import matplotlib.pyplot as pl
-    import numpy as np
-    import gala.integrate as gi
+
 
 References
 ----------
