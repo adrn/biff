@@ -475,7 +475,7 @@ framework from `gala.integrate` and the convenience method
     # by default this uses Leapfrog integration
     orbit = potential.integrate_orbit(w0, dt=0.1, n_steps=10000)
 
-    fig = orbit_l.plot(marker='.', linestyle='none', alpha=0.4)
+    fig = orbit_l.plot(marker=',', linestyle='none', alpha=0.5)
 
 .. plot::
     :align: center
@@ -491,7 +491,7 @@ framework from `gala.integrate` and the convenience method
     # by default this uses Leapfrog integration
     orbit = potential.integrate_orbit(w0, dt=0.1, n_steps=10000)
 
-    fig = orbit.plot(marker='.', linestyle='none', alpha=0.4)
+    fig = orbit.plot(marker=',', linestyle='none', alpha=0.5)
 
 References
 ----------
