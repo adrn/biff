@@ -96,13 +96,13 @@ density profile. To compute the expansion coefficients needed to represent this
 density using SCF with Hernquist radial functions, we first need to convert to
 3D cartesian positions. We will distribute these particles uniformly in angles::
 
-    φ = np.random.uniform(0, 2*np.pi, size=n_samples)
-    θ = np.arccos(2*np.random.random(size=n_samples) - 1)
+    phi = np.random.uniform(0, 2*np.pi, size=n_samples)
+    theta = np.arccos(2*np.random.random(size=n_samples) - 1)
 
     xyz = np.zeros((n_samples, 3))
-    xyz[:,0] = r * np.cos(φ) * np.sin(θ)
-    xyz[:,1] = r * np.sin(φ) * np.sin(θ)
-    xyz[:,2] = r * np.cos(θ)
+    xyz[:,0] = r * np.cos(phi) * np.sin(theta)
+    xyz[:,1] = r * np.sin(phi) * np.sin(theta)
+    xyz[:,2] = r * np.cos(theta)
 
     plt.figure(figsize=(5,5))
     plt.plot(xyz[:,0], xyz[:,1], linestyle='none',
@@ -116,13 +116,13 @@ density using SCF with Hernquist radial functions, we first need to convert to
     :align: center
     :context: close-figs
 
-    φ = np.random.uniform(0, 2*np.pi, size=n_samples)
-    θ = np.arccos(2*np.random.random(size=n_samples) - 1)
+    phi = np.random.uniform(0, 2*np.pi, size=n_samples)
+    theta = np.arccos(2*np.random.random(size=n_samples) - 1)
 
     xyz = np.zeros((n_samples, 3))
-    xyz[:,0] = r * np.cos(φ) * np.sin(θ)
-    xyz[:,1] = r * np.sin(φ) * np.sin(θ)
-    xyz[:,2] = r * np.cos(θ)
+    xyz[:,0] = r * np.cos(phi) * np.sin(theta)
+    xyz[:,1] = r * np.sin(phi) * np.sin(theta)
+    xyz[:,2] = r * np.cos(theta)
 
     plt.figure(figsize=(5,5))
     plt.plot(xyz[:,0], xyz[:,1], linestyle='none',
