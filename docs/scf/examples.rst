@@ -5,6 +5,7 @@ Examples
 For code blocks below, the following imports will be needed::
 
     import astropy.units as u
+    import matplotlib as mpl
     import matplotlib.pyplot as plt
     import numpy as np
     import biff.scf as bscf
@@ -236,6 +237,9 @@ In code::
         s = np.sqrt(x**2 + y**2 + (z/q)**2)
         return hernquist_density(s, M, a)
 
+The function to evaluate the density must take at least 3 arguments: the
+cartesian coordinates ``x``, ``y``, ``z``.
+
 We'll again set :math:`M=a=1` and we'll use a flattening :math:`q=0.8`. Let's
 visualize this by plotting isodensity contours in the :math:`x`-:math:`z` plane:
 
@@ -245,6 +249,7 @@ visualize this by plotting isodensity contours in the :math:`x`-:math:`z` plane:
 
     import astropy.units as u
     import matplotlib.pyplot as plt
+    import matplotlib as mpl
     from matplotlib import ticker
     import numpy as np
     import biff.scf as bscf
@@ -260,8 +265,8 @@ visualize this by plotting isodensity contours in the :math:`x`-:math:`z` plane:
     a = 1.
     q = 0.8
 
-    x,z = np.meshgrid(np.linspace(-10., 10., 64),
-                      np.linspace(-10., 10., 64))
+    x,z = np.meshgrid(np.linspace(-10., 10., 128),
+                      np.linspace(-10., 10., 128))
     y = np.zeros_like(x)
 
     dens = flattened_hernquist_density(x, y, z, M, a, q)
@@ -274,7 +279,70 @@ visualize this by plotting isodensity contours in the :math:`x`-:math:`z` plane:
     plt.ylabel("$z$", fontsize=22)
     plt.tight_layout()
 
+To compute the expansion coefficients, we pass the
+``flattened_hernquist_density()`` function in to `~biff.scf.compute_coeffs`.
+Because this is an axisymmetric density, we will ignore terms with :math:`m>0`
+by setting ``skip_m=True``::
 
+    coeff = bscf.compute_coeffs(flattened_hernquist_density, nmax=8, lmax=8,
+                                M=M, r_s=a, args=(M,a,q), skip_m=True)
+    (S,Serr),(T,Terr) = coeff
+
+Computing the coefficients involves a numerical integration that uses
+`scipy.integrate.quad`, which simultaneously estimates the error in the computed
+integral. `~biff.scf.compute_coeffs` returns the coefficient arrays and these
+error estimates.
+
+Now that we have the coefficients in hand, we can visualize their magnitudes::
+
+    plt.figure(figsize=(6,4))
+    plt.semilogy(np.abs(S[:,0,0]), marker=None, lw=2)
+    plt.xlabel("$n$")
+    plt.ylabel("$S_{n00}$")
+
+.. plot::
+    :align: center
+    :context: close-figs
+
+    nmax = 8
+    lmax = 8
+    coeff = bscf.compute_coeffs(flattened_hernquist_density, nmax=nmax, lmax=lmax,
+                                M=M, r_s=a, args=(M,a,q), skip_m=True)
+    (S,Serr),(T,Terr) = coeff
+
+    plt.figure(figsize=(6,4))
+    plt.semilogy(np.abs(S[:,0,0]), marker=None, lw=2)
+    plt.xlabel("$n$")
+    plt.ylabel("$S_{n00}$")
+    plt.tight_layout()
+
+Because we ignored any :math:`m` terms, the coefficients are computed in a 2D
+grid in :math:`n,l`: we can visualize their magnitude by coloring points on such
+a grid::
+
+    nl_grid = np.mgrid[0:lmax+1, 0:nmax+1]
+
+    plt.figure(figsize=(5,4))
+    plt.scatter(nl_grid[0].ravel(), nl_grid[1].ravel(),
+                c=np.abs(S[:,:,0].ravel()), norm=mpl.colors.LogNorm(),
+                cmap='viridis', s=80)
+    plt.xlabel('$n$')
+    plt.ylabel('$l$')
+    plt.colorbar()
+
+.. plot::
+    :align: center
+    :context: close-figs
+
+    nl_grid = np.mgrid[0:lmax+1, 0:nmax+1]
+
+    plt.figure(figsize=(5,4))
+    plt.scatter(nl_grid[0].ravel(), nl_grid[1].ravel(),
+                c=np.abs(S[:,:,0].ravel()), norm=mpl.colors.LogNorm(),
+                cmap='viridis', s=80)
+    plt.xlabel('$n$')
+    plt.ylabel('$l$')
+    plt.colorbar()
 
 References
 ----------
