@@ -3,25 +3,25 @@
 # cython: nonecheck=False
 # cython: cdivision=True
 # cython: wraparound=False
-# cython: profile=False
-# cython: linetrace=True
-# distutils: define_macros=CYTHON_TRACE=1
 
 from __future__ import division, print_function
 
-__author__ = "adrn <adrn@astro.columbia.edu>"
-
+# Standard library
 from collections import OrderedDict
+from libc.math cimport M_PI
 
+# Third party
 from astropy.constants import G
 import numpy as np
 cimport numpy as np
-from libc.math cimport M_PI
+np.import_array()
+import cython
+cimport cython
 
 # Gala
 from gala.units import galactic
-from gala.potential.cpotential cimport CPotentialWrapper
-from gala.potential.cpotential import CPotentialBase
+from gala.potential.potential.cpotential cimport CPotentialWrapper
+from gala.potential.potential.cpotential import CPotentialBase
 
 cdef extern from "math.h":
     double sqrt(double x) nogil
@@ -29,22 +29,28 @@ cdef extern from "math.h":
     double cos(double x) nogil
     double sin(double x) nogil
 
-cdef extern from "src/cpotential.h":
+cdef extern from "src/funcdefs.h":
+    ctypedef double (*densityfunc)(double t, double *pars, double *q, int n_dim) nogil
+    ctypedef double (*energyfunc)(double t, double *pars, double *q, int n_dim) nogil
+    ctypedef void (*gradientfunc)(double t, double *pars, double *q, int n_dim, double *grad) nogil
+    ctypedef void (*hessianfunc)(double t, double *pars, double *q, int n_dim, double *hess) nogil
+
+cdef extern from "potential/src/cpotential.h":
     enum:
         MAX_N_COMPONENTS = 16
-
-    ctypedef double (*densityfunc)(double t, double *pars, double *q) nogil
-    ctypedef double (*valuefunc)(double t, double *pars, double *q) nogil
-    ctypedef void (*gradientfunc)(double t, double *pars, double *q, double *grad) nogil
 
     ctypedef struct CPotential:
         int n_components
         int n_dim
         densityfunc density[MAX_N_COMPONENTS]
-        valuefunc value[MAX_N_COMPONENTS]
+        energyfunc value[MAX_N_COMPONENTS]
         gradientfunc gradient[MAX_N_COMPONENTS]
+        hessianfunc hessian[MAX_N_COMPONENTS]
         int n_params[MAX_N_COMPONENTS]
         double *parameters[MAX_N_COMPONENTS]
+
+cdef extern from "potential/builtin/builtin_potentials.h":
+    void nan_hessian(double t, double *pars, double *q, int n_dim, double *hess) nogil
 
 cdef extern from "src/bfe_helper.h":
     double rho_nlm(double s, double phi, double X, int n, int l, int m) nogil
@@ -62,9 +68,9 @@ cdef extern from "src/bfe.h":
                              double *Snlm, double *Tnlm,
                              int nmax, int lmax, double *grad) nogil
 
-    double scf_value(double t, double *pars, double *q) nogil
-    double scf_density(double t, double *pars, double *q) nogil
-    void scf_gradient(double t, double *pars, double *q, double *grad) nogil
+    double scf_value(double t, double *pars, double *q, int n_dim) nogil
+    double scf_density(double t, double *pars, double *q, int n_dim) nogil
+    void scf_gradient(double t, double *pars, double *q, int n_dim, double *grad) nogil
 
 __all__ = ['density', 'potential', 'gradient', 'SCFPotential']
 
@@ -229,17 +235,19 @@ cdef class SCFWrapper(CPotentialWrapper):
         cdef CPotential cp
 
         # This is the only code that needs to change per-potential
-        cp.value[0] = <valuefunc>(scf_value)
+        cp.value[0] = <energyfunc>(scf_value)
         cp.density[0] = <densityfunc>(scf_density)
         cp.gradient[0] = <gradientfunc>(scf_gradient)
+        cp.hessian[0] = <hessianfunc>(nan_hessian) # TODO
         # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+        cp.n_dim = 3
         cp.n_components = 1
         self._params = np.array([G] + list(parameters), dtype=np.float64)
         self._n_params = np.array([len(self._params)], dtype=np.int32)
         cp.n_params = &(self._n_params[0])
         cp.parameters[0] = &(self._params[0])
-        cp.n_dim = 3
+
         self.cpotential = cp
 
 class SCFPotential(CPotentialBase):
@@ -280,23 +288,25 @@ class SCFPotential(CPotentialBase):
             raise ValueError("Shape of coefficient arrays must match! "
                              "({} vs {})".format(Snlm.shape, Tnlm.shape))
 
-        parameters = OrderedDict()
-        parameters['m'] = m
-        parameters['r_s'] = r_s
-        parameters['Snlm'] = Snlm
-        parameters['Tnlm'] = Tnlm
-        super(CPotentialBase, self).__init__(parameters, units=units)
-
-        # specialized
+        # extra parameters
         nmax = Tnlm.shape[0]-1
         lmax = Tnlm.shape[1]-1
-        coeff = np.concatenate((Snlm.ravel(), Tnlm.ravel()))
 
-        c_params = []
-        c_params.append(self.parameters['m'].value)
-        c_params.append(self.parameters['r_s'].value)
-        c_params.append(nmax)
-        c_params.append(lmax)
-        c_params = c_params + coeff.tolist()
-        self.c_parameters = np.array(c_params)
-        self.c_instance = SCFWrapper(self.G, list(self.c_parameters))
+        parameters = OrderedDict()
+        ptypes = OrderedDict()
+
+        parameters['m'] = m
+        ptypes['m'] = 'mass'
+
+        parameters['r_s'] = r_s
+        ptypes['r_s'] = 'length'
+
+        parameters['nmax'] = nmax
+        parameters['lmax'] = lmax
+        parameters['Snlm'] = Snlm.ravel()
+        parameters['Tnlm'] = Tnlm.ravel()
+
+        super(SCFPotential, self).__init__(parameters=parameters,
+                                           parameter_physical_types=ptypes,
+                                           units=units,
+                                           Wrapper=SCFWrapper)

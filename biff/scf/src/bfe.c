@@ -178,7 +178,7 @@ void scf_gradient_helper(double *xyz, int K,
     }
 }
 
-double scf_value(double t, double *pars, double *q) {
+double scf_value(double t, double *pars, double *q, int n_dim) {
     /*  pars:
         - G (Gravitational constant)
         - m (mass scale)
@@ -187,11 +187,17 @@ double scf_value(double t, double *pars, double *q) {
         - lmax
         [- sin_coeff, cos_coeff]
     */
+
+    printf('SuUHHHHHHHH\n');
+
     double G = pars[0];
     double M = pars[1];
     double r_s = pars[2];
     int nmax = (int)pars[3];
     int lmax = (int)pars[4];
+
+    printf('G M r_s %f %f %f\n', G, M, r_s);
+    printf('nmax lmax %d %d\n', nmax, lmax);
 
     double val[1] = {0.};
     double _val;
@@ -215,7 +221,7 @@ double scf_value(double t, double *pars, double *q) {
     return _val;
 }
 
-void scf_gradient(double t, double *pars, double *q, double *grad) {
+void scf_gradient(double t, double *pars, double *q, int n_dim, double *grad) {
     /*  pars:
         - G (Gravitational constant)
         - m (mass scale)
@@ -229,6 +235,9 @@ void scf_gradient(double t, double *pars, double *q, double *grad) {
     double r_s = pars[2];
     int nmax = (int)pars[3];
     int lmax = (int)pars[4];
+
+    printf('G M r_s %f %f %f\n', G, M, r_s);
+    printf('nmax lmax %d %d\n', nmax, lmax);
 
     int n,l,m;
 
@@ -247,7 +256,7 @@ void scf_gradient(double t, double *pars, double *q, double *grad) {
                         nmax, lmax, &grad[0]);
 }
 
-double scf_density(double t, double *pars, double *q) {
+double scf_density(double t, double *pars, int n_dim, double *q) {
     /*  pars:
         - G (Gravitational constant)
         - m (mass scale)

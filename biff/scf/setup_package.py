@@ -8,6 +8,9 @@ from astropy_helpers import setup_helpers
 
 def get_extensions():
 
+    # malloc
+    mac_incl_path = "/usr/include/malloc"
+
     try:
         # Get gala path -- for egg_info build
         import gala
@@ -31,16 +34,17 @@ def get_extensions():
     coeff_cfg['extra_compile_args'] = ['--std=gnu99']
 
     bfe_cfg = setup_helpers.DistutilsExtensionArgs()
+    bfe_cfg['include_dirs'].append(mac_incl_path)
     bfe_cfg['include_dirs'].append('numpy')
     if gala_path is not None:
         bfe_cfg['include_dirs'].append(gala_path)
-    bfe_cfg['include_dirs'].append('biff/scf/src')
     bfe_cfg['include_dirs'].append(py_inc) # for gsl
     # bfe_cfg['library_dirs'].append(py_lib) # for gsl
     bfe_cfg['sources'].append('biff/scf/bfe.pyx')
     bfe_cfg['sources'].append('biff/scf/src/bfe.c')
     bfe_cfg['sources'].append('biff/scf/src/bfe_helper.c')
-    # bfe_cfg['sources'].append(os.path.join(gala_path, 'src', 'cpotential.c'))
+    bfe_cfg['sources'].append(join(gala_path, 'potential', 'src', 'cpotential.c'))
+    bfe_cfg['sources'].append(join(gala_path, 'potential', 'builtin', 'builtin_potentials.c'))
     bfe_cfg['libraries'] = ['gsl', 'gslcblas']
     bfe_cfg['extra_compile_args'] = ['--std=gnu99']
 
@@ -48,6 +52,8 @@ def get_extensions():
             Extension('biff.scf._bfe', **bfe_cfg)]
 
 def get_package_data():
-    return {'biff': ['*.pyx', '*/*.pyx',
-                     'scf/src/*.h', 'scf/data/*.csv',
-                     'scf/data/*.dat.gz', 'scf/data/*.coeff']}
+    return {'biff.scf': ['*.pyx',
+                         'scf/data/*.csv',
+                         'scf/data/*.dat.gz', 'scf/data/*.coeff',
+                         '*.h', '*.pyx', '*.pxd',
+                         'src/*.c', 'src/*.h']}
