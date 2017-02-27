@@ -1,5 +1,5 @@
-#ifndef _BFE_
-#define _BFE_
+// #ifndef _BFE_
+// #define _BFE_
 extern void scf_density_helper(double *xyz, int K, double M, double r_s,
                                double *Snlm, double *Tnlm,
                                int nmax, int lmax, double *dens);
@@ -17,4 +17,4 @@ extern void scf_gradient_helper(double *xyz, int K,
 extern double scf_value(double t, double *pars, double *q, int n_dim);
 extern void scf_gradient(double t, double *pars, double *q, int n_dim, double *grad);
 extern double scf_density(double t, double *pars, double *q, int n_dim);
-#endif
+// #endif
