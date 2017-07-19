@@ -66,25 +66,13 @@ def get_extensions():
     cfg['libraries'] = ['gsl', 'gslcblas']
     exts.append(Extension('biff.scf.bfe_class', **cfg))
 
-    # HACK: testing
-    cfg = setup_helpers.DistutilsExtensionArgs()
-    cfg['include_dirs'].append('numpy')
-    cfg['include_dirs'].append(mac_incl_path)
-    cfg['include_dirs'].append(gala_path)
-    cfg['include_dirs'].append('biff/scf/hacktest/')
-    cfg['include_dirs'].append('biff/scf/src/')
-    cfg['extra_compile_args'].append('--std=gnu99')
-    cfg['sources'].append('biff/scf/hack.pyx')
-    cfg['sources'].append('biff/scf/hacktest/hack.c')
-    cfg['sources'].append('biff/scf/src/bfe_helper.c')
-    cfg['libraries'] = ['gsl', 'gslcblas']
-    exts.append(Extension('biff.scf.hack', **cfg))
-
     return exts
 
 def get_package_data():
     return {'biff.scf': ['*.pyx',
-                         'scf/data/*.csv',
-                         'scf/data/*.dat.gz', 'scf/data/*.coeff',
+                         'tests/data/*',
+                         'tests/data/*.csv',
+                         'tests/data/*.dat.gz',
+                         'tests/data/*.coeff',
                          '*.h', '*.pyx', '*.pxd',
                          'src/*.c', 'src/*.h']}

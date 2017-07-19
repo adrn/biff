@@ -27,7 +27,6 @@ cdef extern from "src/funcdefs.h":
     ctypedef double (*densityfunc)(double t, double *pars, double *q, int n_dim) nogil
     ctypedef double (*energyfunc)(double t, double *pars, double *q, int n_dim) nogil
     ctypedef void (*gradientfunc)(double t, double *pars, double *q, int n_dim, double *grad) nogil
-    ctypedef void (*hessianfunc)(double t, double *pars, double *q, int n_dim, double *hess) nogil
 
 cdef extern from "potential/src/cpotential.h":
     enum:
@@ -39,7 +38,6 @@ cdef extern from "potential/src/cpotential.h":
         densityfunc density[MAX_N_COMPONENTS]
         energyfunc value[MAX_N_COMPONENTS]
         gradientfunc gradient[MAX_N_COMPONENTS]
-        hessianfunc hessian[MAX_N_COMPONENTS]
         int n_params[MAX_N_COMPONENTS]
         double *parameters[MAX_N_COMPONENTS]
 
@@ -52,23 +50,11 @@ __all__ = ['SCFPotential']
 
 cdef class SCFWrapper(CPotentialWrapper):
 
-    def __init__(self, G, parameters):
-        cdef CPotential cp
-
-        # This is the only code that needs to change per-potential
-        cp.value[0] = <energyfunc>(scf_value)
-        cp.density[0] = <densityfunc>(scf_density)
-        cp.gradient[0] = <gradientfunc>(scf_gradient)
-        # ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-        cp.n_dim = 3
-        cp.n_components = 1
-        self._params = np.array([G] + list(parameters), dtype=np.float64)
-        self._n_params = np.array([len(self._params)], dtype=np.int32)
-        cp.n_params = &(self._n_params[0])
-        cp.parameters[0] = &(self._params[0])
-
-        self.cpotential = cp
+    def __init__(self, G, parameters, q0):
+        self.init([G] + list(parameters), np.ascontiguousarray(q0))
+        self.cpotential.value[0] = <energyfunc>(scf_value)
+        self.cpotential.density[0] = <densityfunc>(scf_density)
+        self.cpotential.gradient[0] = <gradientfunc>(scf_gradient)
 
 class SCFPotential(CPotentialBase):
     r"""
@@ -126,7 +112,10 @@ class SCFPotential(CPotentialBase):
         parameters['Snlm'] = Snlm.ravel()
         parameters['Tnlm'] = Tnlm.ravel()
 
+        # TODO: I need to save the full 3D Snlm, Tnlm and ravel elsewhere
+
         super(SCFPotential, self).__init__(parameters=parameters,
                                            parameter_physical_types=ptypes,
                                            units=units,
-                                           Wrapper=SCFWrapper)
+                                           Wrapper=SCFWrapper,
+                                           c_only=['nmax', 'lmax']) # don't expose these in the .parameters dictionary

@@ -140,7 +140,7 @@ def test_flattened_hernquist():
     in that notebook.
     """
 
-    coeff_path = os.path.abspath(get_pkg_data_filename('../data/Snlm-mathematica.csv'))
+    coeff_path = os.path.abspath(get_pkg_data_filename('data/Snlm-mathematica.csv'))
 
     G = 1.
     M = 1
