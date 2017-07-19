@@ -71,3 +71,20 @@ class TestSCFPotential(PotentialTestBase):
     @pytest.mark.skipif(True, reason='no hessian implemented')
     def test_hessian(self):
         pass
+
+    def test_compare(self):
+        # skip if composite potentials
+        if len(self.potential.parameters) == 0:
+            return
+
+        other = self.potential.__class__(units=self.potential.units, **self.potential.parameters)
+        assert other == self.potential
+
+        pars = self.potential.parameters.copy()
+        for k in pars.keys():
+            if k != 0:
+                pars[k] = 1.1*pars[k]
+
+        print(pars)
+        other = self.potential.__class__(units=self.potential.units, **pars)
+        assert other != self.potential

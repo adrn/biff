@@ -109,8 +109,8 @@ class SCFPotential(CPotentialBase):
 
         parameters['nmax'] = nmax
         parameters['lmax'] = lmax
-        parameters['Snlm'] = Snlm.ravel()
-        parameters['Tnlm'] = Tnlm.ravel()
+        parameters['Snlm'] = Snlm
+        parameters['Tnlm'] = Tnlm
 
         # TODO: I need to save the full 3D Snlm, Tnlm and ravel elsewhere
 
