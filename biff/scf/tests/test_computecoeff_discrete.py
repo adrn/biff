@@ -2,7 +2,6 @@
 
 from __future__ import division, print_function
 
-__author__ = "adrn <adrn@astro.columbia.edu>"
 
 import os
 
@@ -18,9 +17,9 @@ _G = G.decompose(galactic).value
 from ..core import compute_coeffs_discrete
 from .._bfe import potential
 
-pos_path = os.path.abspath(get_pkg_data_filename('../data/plummer-pos.dat.gz'))
-
 def test_plummer():
+    pos_path = os.path.abspath(get_pkg_data_filename('data/plummer-pos.dat.gz'))
+
     scfbi = scfbi = np.loadtxt(pos_path)
     m_k = scfbi[:,0]*10 # masses sum to 0.1
     xyz = scfbi[:,1:4]

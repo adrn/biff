@@ -11,8 +11,6 @@
 
 from __future__ import division, print_function
 
-__author__ = "adrn <adrn@astro.columbia.edu>"
-
 import numpy as np
 cimport numpy as np
 from libc.math cimport M_PI

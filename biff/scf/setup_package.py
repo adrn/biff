@@ -7,6 +7,10 @@ from distutils.sysconfig import get_python_inc
 from astropy_helpers import setup_helpers
 
 def get_extensions():
+    exts = []
+
+    # malloc
+    mac_incl_path = "/usr/include/malloc"
 
     try:
         # Get gala path -- for egg_info build
@@ -29,25 +33,46 @@ def get_extensions():
     # coeff_cfg['sources'].append('biff/src/coeff_helper.c')
     coeff_cfg['libraries'] = ['gsl', 'gslcblas']
     coeff_cfg['extra_compile_args'] = ['--std=gnu99']
+    exts.append(Extension('biff.scf._computecoeff', **coeff_cfg))
 
     bfe_cfg = setup_helpers.DistutilsExtensionArgs()
+    bfe_cfg['include_dirs'].append(mac_incl_path)
     bfe_cfg['include_dirs'].append('numpy')
+
     if gala_path is not None:
         bfe_cfg['include_dirs'].append(gala_path)
-    bfe_cfg['include_dirs'].append('biff/scf/src')
+        bfe_cfg['sources'].append(join(gala_path, 'potential', 'src', 'cpotential.c'))
+        bfe_cfg['sources'].append(join(gala_path, 'potential', 'builtin', 'builtin_potentials.c'))
+
     bfe_cfg['include_dirs'].append(py_inc) # for gsl
     # bfe_cfg['library_dirs'].append(py_lib) # for gsl
     bfe_cfg['sources'].append('biff/scf/bfe.pyx')
     bfe_cfg['sources'].append('biff/scf/src/bfe.c')
     bfe_cfg['sources'].append('biff/scf/src/bfe_helper.c')
-    # bfe_cfg['sources'].append(os.path.join(gala_path, 'src', 'cpotential.c'))
     bfe_cfg['libraries'] = ['gsl', 'gslcblas']
     bfe_cfg['extra_compile_args'] = ['--std=gnu99']
+    exts.append(Extension('biff.scf._bfe', **bfe_cfg))
 
-    return [Extension('biff.scf._computecoeff', **coeff_cfg),
-            Extension('biff.scf._bfe', **bfe_cfg)]
+    # SCFPotential class
+    cfg = setup_helpers.DistutilsExtensionArgs()
+    cfg['include_dirs'].append('numpy')
+    cfg['include_dirs'].append(mac_incl_path)
+    cfg['include_dirs'].append(gala_path)
+    cfg['include_dirs'].append('biff/scf/src/')
+    cfg['extra_compile_args'].append('--std=gnu99')
+    cfg['sources'].append('biff/scf/bfe_class.pyx')
+    cfg['sources'].append('biff/scf/src/bfe.c')
+    cfg['sources'].append('biff/scf/src/bfe_helper.c')
+    cfg['libraries'] = ['gsl', 'gslcblas']
+    exts.append(Extension('biff.scf.bfe_class', **cfg))
+
+    return exts
 
 def get_package_data():
-    return {'biff': ['*.pyx', '*/*.pyx',
-                     'scf/src/*.h', 'scf/data/*.csv',
-                     'scf/data/*.dat.gz', 'scf/data/*.coeff']}
+    return {'biff.scf': ['*.pyx',
+                         'tests/data/*',
+                         'tests/data/*.csv',
+                         'tests/data/*.dat.gz',
+                         'tests/data/*.coeff',
+                         '*.h', '*.pyx', '*.pxd',
+                         'src/*.c', 'src/*.h']}

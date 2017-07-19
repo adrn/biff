@@ -2,7 +2,6 @@
 
 from __future__ import division, print_function
 
-__author__ = "adrn <adrn@astro.columbia.edu>"
 
 # Standard library
 import os
@@ -17,7 +16,7 @@ import numpy as np
 # Project
 from ..core import compute_coeffs_discrete
 
-""" Compare coefficients computed with Fortran to Biff """
+# Compare coefficients computed with Fortran to Biff
 
 @pytest.mark.parametrize("basename", [
     'hernquist'
@@ -26,8 +25,8 @@ def test_coeff(basename):
     nmax = 6
     lmax = 10 # HACK: these are hard-set in Fortran
 
-    pos_path = os.path.abspath(get_pkg_data_filename('../data/{}-samples.dat.gz'.format(basename)))
-    coeff_path = os.path.abspath(get_pkg_data_filename('../data/computed-{0}.coeff'.format(basename)))
+    pos_path = os.path.abspath(get_pkg_data_filename('data/{}-samples.dat.gz'.format(basename)))
+    coeff_path = os.path.abspath(get_pkg_data_filename('data/computed-{0}.coeff'.format(basename)))
     coeff = np.atleast_2d(np.loadtxt(coeff_path))
 
     xyz = np.ascontiguousarray(np.loadtxt(pos_path, skiprows=1))
