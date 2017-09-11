@@ -287,6 +287,9 @@ To compute the expansion coefficients, we pass the
 Because this is an axisymmetric density, we will ignore terms with :math:`m>0`
 by setting ``skip_m=True``::
 
+    M = 1.
+    a = 1.
+    q = 0.8
     coeff = bscf.compute_coeffs(flattened_hernquist_density, nmax=8, lmax=8,
                                 M=M, r_s=a, args=(M,a,q), skip_m=True)
     (S,Serr),(T,Terr) = coeff
