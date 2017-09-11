@@ -248,7 +248,7 @@ void scf_gradient(double t, double *pars, double *q, int n_dim, double *grad) {
                         nmax, lmax, &grad[0]);
 }
 
-double scf_density(double t, double *pars, int n_dim, double *q) {
+double scf_density(double t, double *pars, double *q, int n_dim) {
     /*  pars:
         - G (Gravitational constant)
         - m (mass scale)
