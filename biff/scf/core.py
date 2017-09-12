@@ -13,7 +13,8 @@ from ._computecoeff import Snlm_integrand, Tnlm_integrand, STnlm_discrete, STnlm
 __all__ = ['compute_coeffs', 'compute_coeffs_discrete']
 
 def compute_coeffs(density_func, nmax, lmax, M, r_s, args=(),
-                   skip_odd=False, skip_even=False, skip_m=False, **nquad_opts):
+                   skip_odd=False, skip_even=False, skip_m=False,
+                   S_only=False, **nquad_opts):
     """
     Compute the expansion coefficients for representing the input density function using a basis
     function expansion.
@@ -48,6 +49,8 @@ def compute_coeffs(density_func, nmax, lmax, M, r_s, args=(),
         take :math:`l=1,3,5,...`
     skip_m : bool (optional)
         Ignore terms with :math:`m > 0`.
+    S_only : bool (optional)
+        Only compute the S coefficients.
     **nquad_opts
         Any additional keyword arguments are passed through to
         `~scipy.integrate.nquad` as options, `opts`.
@@ -90,17 +93,19 @@ def compute_coeffs(density_func, nmax, lmax, M, r_s, args=(),
             for m in range(l+1):
                 if skip_m and m > 0: continue
 
-                logger.debug("Computing coefficients (n,l,m)=({},{},{})".format(n,l,m))
+                logger.debug("Computing coefficients (n,l,m)=({},{},{})"
+                             .format(n,l,m))
 
-                Snlm[n,l,m],Snlm_e[n,l,m] = si.nquad(Snlm_integrand,
-                                             ranges=limits,
-                                             args=(density_func, n, l, m, M, r_s, args),
-                                             opts=nquad_opts)
+                Snlm[n,l,m],Snlm_e[n,l,m] = si.nquad(
+                    Snlm_integrand, ranges=limits,
+                    args=(density_func, n, l, m, M, r_s, args),
+                    opts=nquad_opts)
 
-                Tnlm[n,l,m],Tnlm_e[n,l,m] = si.nquad(Tnlm_integrand,
-                                             ranges=limits,
-                                             args=(density_func, n, l, m, M, r_s, args),
-                                             opts=nquad_opts)
+                if not S_only:
+                    Tnlm[n,l,m],Tnlm_e[n,l,m] = si.nquad(
+                        Tnlm_integrand, ranges=limits,
+                        args=(density_func, n, l, m, M, r_s, args),
+                        opts=nquad_opts)
 
     return (Snlm,Snlm_e), (Tnlm,Tnlm_e)
 
