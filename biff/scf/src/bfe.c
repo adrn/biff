@@ -136,7 +136,7 @@ void scf_gradient_helper(double *xyz, int K,
         tmp_grad2[j+1] = 0.;
         tmp_grad2[j+2] = 0.;
 
-        i = 0;
+        // i = 0;
         for (n=0; n<(nmax+1); n++) {
             // gsl_sf_legendre_deriv_array(GSL_SF_LEGENDRE_SPHARM, lmax, X,
             //                             double result_array[], double result_deriv_array[]);
@@ -150,7 +150,7 @@ void scf_gradient_helper(double *xyz, int K,
                     i = m + (lmax+1) * (l + (lmax+1) * n);
                     tmp = (Snlm[i]*cosmphi[m] + Tnlm[i]*sinmphi[m]);
                     if ((Snlm[i] == 0.) & (Tnlm[i] == 0.)) {
-                        i++;
+                        // i++;
                         continue;
                     }
 
