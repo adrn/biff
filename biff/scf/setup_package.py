@@ -37,7 +37,7 @@ def get_extensions():
     # https://github.com/pyFFTW/pyFFTW/pull/161/files
     # https://github.com/pyFFTW/pyFFTW/pull/162/files
     include_dirs.append(path.join(sys.prefix, 'include'))
-    library_dirs = path.join(sys.prefix, 'lib')
+    library_dirs = [path.join(sys.prefix, 'lib')]
 
     # Python include / lib
     include_dirs.append(path.abspath(path.join(get_python_inc(),"..")))
