@@ -1,5 +1,15 @@
-Biff
-====
+Biff has been merged into gala!
+===============================
+
+*The relevant parts of Biff have been moved into [gala](https://github.com/adrn/gala)!*
+
+
+
+~~~~~~~~~~~~~~~
+
+
+
+Below preserved for posterity.
 
 Basis function expansions of gravitational potentials.
 
@@ -31,17 +41,6 @@ You'll also need the following packages:
     - [Scipy](https://github.com/scipy/scipy)
     - [Astropy](https://github.com/astropy/astropy)
     - [Gala](https://github.com/adrn/gala) (install with `pip install astro-gala`)
-
-Installation
-============
-
-The easiest way to install the latest stable version of Biff is via pip:
-
-    pip install biff
-
-To get the latest development version, you can clone this repository and do:
-
-    python setup.py install
 
 License
 =======
