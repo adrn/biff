@@ -4,9 +4,7 @@ Biff has been merged into gala!
 *The relevant parts of Biff have been moved into [gala](https://github.com/adrn/gala)!*
 
 
-
-~~~~~~~~~~~~~~~
-
+--------
 
 
 Below preserved for posterity.
